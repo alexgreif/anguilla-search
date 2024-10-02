@@ -38,7 +38,7 @@ class CrawlerTests {
             // Add your code here to get the number of crawled pages
 
             // Get the crawled pages
-            int numPagesCrawled = 0;
+            int numPagesCrawled = (new Crawler(seedUrls)).nPages();
             
             
             // Verify that the number of crawled pages is correct, i.e. the same as stated in the JSON file
@@ -58,7 +58,7 @@ class CrawlerTests {
             // Add your code here to get the number of links
 
             // Get the number of links
-            int numLinks = 0;
+            int numLinks = (new Crawler(seedUrls)).nLinks();
    
 
 
