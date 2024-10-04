@@ -23,7 +23,7 @@ class CrawlerTests {
         testJSONs.add(Utils.parseJSONFile("intranet/cheesy2-c79b0581.json"));
         testJSONs.add(Utils.parseJSONFile("intranet/cheesy3-7fdaa098.json"));
         testJSONs.add(Utils.parseJSONFile("intranet/cheesy4-a31d2f0d.json"));
-        // Big net testJSONs.add(Utils.parseJSONFile("intranet/cheesy5-d861877d.json"));
+        testJSONs.add(Utils.parseJSONFile("intranet/cheesy5-d861877d.json"));
         testJSONs.add(Utils.parseJSONFile("intranet/cheesy6-54ae2b2e.json"));
     }
 
@@ -62,7 +62,7 @@ class CrawlerTests {
             // Get the number of links
             Crawler crawler = new Crawler(seedUrls);
             crawler.crawl();
-            int numLinks = crawler.nLinks();
+            int numLinks = crawler.nLinks(false);
    
 
 

@@ -42,10 +42,10 @@ public class Crawler {
         return this.pages.size();
     }
 
-    public int nLinks() {
+    public int nLinks(boolean distinct) {
         int results = 0;
         for (Page page : this.getPages()) {
-            results += page.nIncomingLinks(false);
+            results += page.nIncomingLinks(distinct);
         }
         return results;
     }
