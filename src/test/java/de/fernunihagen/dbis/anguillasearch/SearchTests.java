@@ -23,16 +23,20 @@ class SearchTests {
         // Extract the expected URLs from the JSON file
         String[] expectedURLs = new Gson().fromJson(testJSON.get("Query-URLs"), String[].class);
         // Execute a search with the given query in the given network via the seed URLs
-        List<String> foundURLs; 
+        Index index = new Index(seedUrls);
 
         // Place your code here to execute the search
-        // foundURLs = search(query, seedUrls);
+        Index.SearchResult result = index.search(String.join(", ", query));
+        result.sort();
+        List<String> foundUrls = result.getUrls(); 
 
         // Verify that the found URLs are correct, i.e. the same as stated in the JSON file
         // Uncomment the following line once you have implemented the search
-        //assertTrue(foundURLs.containsAll(Arrays.asList(expectedURLs)));
+        assertTrue(foundUrls.containsAll(Arrays.asList(expectedURLs)));
+
+        System.out.println(result);
+        System.out.println(Arrays.asList(expectedURLs));
 
         // Remove the following line after adding your code!
-        assertTrue(false);
     }
 }

@@ -72,7 +72,7 @@ public class Crawler {
         return links;
     } 
 
-    private Collection<Page> getPages() {
+    public Collection<Page> getPages() {
         return this.pages.values();
     }
 

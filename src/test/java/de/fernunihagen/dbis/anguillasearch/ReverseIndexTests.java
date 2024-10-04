@@ -5,12 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.ArrayList;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import de.fernunihagen.dbis.anguillasearch.ReverseIndex.TfIdfMap;
 
 
 /**
@@ -21,6 +24,8 @@ class ReverseIndexTests {
     static List<JsonObject> testPages;
     static JsonObject correctReverseIdex;
 
+    static ReverseIndex ri;
+    static List<Page> pages;
 
     @BeforeAll
     static void setUp() throws IOException {
@@ -29,7 +34,12 @@ class ReverseIndexTests {
         correctReverseIdex = Utils.parseJSONFile("src/test/resources/tf-idf/index.json");
 
         // Add your code here to create your reverse index
-
+        pages = new ArrayList<>();
+        for (JsonObject page : testPages) {
+            pages.add(new Page(page));
+        }
+        ForwardIndex forwardIndex = new ForwardIndex(pages);
+        ri = new ReverseIndex(forwardIndex);
     }
 
         
@@ -54,20 +64,20 @@ class ReverseIndexTests {
 
 
                 // Check if the reverse index contains the token
-                //assertTrue(     .containsKey(token) );
+                assertTrue(ri.containsToken(token));
 
                 // Get the map of pages for the token
+                TfIdfMap tfIdfMap = ri.getPagesContaining(token);
         
                 // Check if the URL exists for that token
-                //assertTrue(    .containsKey(url) );
+                assertTrue(tfIdfMap.containsPage(url));
 
                 // Get the TF-IDF value for the URL from your reverse index
-                Double indexTfidf;
+                Double indexTfidf = tfIdfMap.getTfIdfOf(url);
                 // Check if the TF-IDF value is correct
-                //assertTrue(Math.abs(tfidf - indexTfidf) < 0.0001);
+                assertTrue(Math.abs(tfidf - indexTfidf) < 0.0001);
 
                 // Remove the following line after adding your code
-                assertTrue(false);
 
             }
         }
