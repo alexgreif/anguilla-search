@@ -14,16 +14,17 @@ class CosineTests {
 
     @Test
     void equalVectors() {
-        // Create two vector with random positive double values;
+        // Create two vector with random positive double values
         double[] vectorA = { 0.1, 0.2, 0.3, 0.4, 0.5 };
         double[] vectorB = { 0.1, 0.2, 0.3, 0.4, 0.5 };
 
         // The cosine similarity of two equal vectors should be 1.0
         // Replace the cosineSimilarity method with your implementation
-        //assertEquals(1.0, cosineSimilarity(vectorA, vectorB));
+        Vector vecA = new HashVector(vectorA);
+        Vector vecB = new HashVector(vectorB);
+        assertEquals(1.0, vecA.cosineSimilarity(vecB));
 
         // and remove the following line
-        assertTrue(false);
     }
 
     @Test
@@ -33,10 +34,11 @@ class CosineTests {
         double[] vectorB = { 0.0, 1.0, 0.0 };
         // The cosine similarity of two orthogonal vectors should be 0.0
         // Replace the cosineSimilarity method with your implementation
-        //assertEquals(0.0, cosineSimilarity(vectorA, vectorB));
+        Vector vecA = new HashVector(vectorA);
+        Vector vecB = new HashVector(vectorB);
+        assertEquals(0.0, vecA.cosineSimilarity(vecB));
 
         // and remove the following line!
-        assertTrue(false);
     }
 
     @Test
@@ -46,11 +48,12 @@ class CosineTests {
         double[] vectorB = { 0.5, 0.4, 0.3, 0.2, 0.1 };
         // The cosine similarity of two random positive vectors should be between 0.0 and 1.0
         // Replace the cosineSimilarity method with your implementation
-        //assertTrue(cosineSimilarity(vectorA, vectorB) > 0.0);
-        //assertTrue(cosineSimilarity(vectorA, vectorB) < 1.0);
+        Vector vecA = new HashVector(vectorA);
+        Vector vecB = new HashVector(vectorB);
+        assertTrue(vecA.cosineSimilarity(vecB) > 0.0);
+        assertTrue(vecA.cosineSimilarity(vecB) < 1.0);
 
         // and remove the following line!
-        assertTrue(false);
     }
 
     @Test
@@ -60,9 +63,10 @@ class CosineTests {
         double[] vectorB = { 0.5, 0.4, 0.3, 0.2, 0.1 };
         // The cosine similarity of these vectors should be 0.7
         // Replace the cosineSimilarity method with your implementation
-        //assertTrue(Math.abs(cosineSimilarity(vectorA, vectorB) - 0.6364) < 0.0001);
+        Vector vecA = new HashVector(vectorA);
+        Vector vecB = new HashVector(vectorB);
+        assertTrue(Math.abs(vecA.cosineSimilarity(vecB) - 0.6364) < 0.0001);
 
         // and remove the following line!
-        assertTrue(false);
     }
 }
