@@ -3,7 +3,6 @@ package de.fernunihagen.dbis.anguillasearch;
 import java.io.IOException;
 
 import java.util.Set;
-import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -44,7 +43,7 @@ public class Page {
         this.paragraphs = jsonObject.get("paragraphs").getAsString();
         this.incomingLinks = new CountMap<>();
         this.outgoingLinks = new CountMap<>();
-        
+
         for (JsonElement link : jsonObject.get("outgoingLinks").getAsJsonArray()) {
             this.outgoingLinks.add(link.getAsString());
         }
@@ -58,11 +57,11 @@ public class Page {
     }
 
     public Set<String> getIncomingLinks() {
-        return this.incomingLinks.getKeys();
+        return this.incomingLinks.keySet();
     }
 
     public Set<String> getOutgoingLinks() {
-        return this.outgoingLinks.getKeys();
+        return this.outgoingLinks.keySet();
     }
 
     public int nIncomingLinks(boolean distinct) {
@@ -73,7 +72,7 @@ public class Page {
         return distinct ? this.outgoingLinks.nDistinct() : this.outgoingLinks.totalCount();
     }
 
-    public List<String> tokens() {
+    public CountMap<String> tokens() {
         String fullString = (this.title + " " + this.headings + " " + this.paragraphs);
         return StringProcessing.process(fullString);
     }

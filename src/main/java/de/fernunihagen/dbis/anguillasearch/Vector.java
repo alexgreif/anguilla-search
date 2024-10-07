@@ -1,67 +1,20 @@
 package de.fernunihagen.dbis.anguillasearch;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
-public abstract class Vector implements Iterable<Double> {
-    protected int dims;
+public interface Vector {
+    public double dot(Vector other);
 
-    public double dot(Vector other) {
-        this.exceptionIfDifferentLengths(other);
-        int sum = 0;
-        for (int i = 0; i < this.dims; i++) {
-            sum += this.get(i) * other.get(i);
-        }
-        return sum;
-    }
+    public double euclidianNorm();
 
-    public double euclidianNorm() {
-        double sum = 0;
-        for (double entry : this) {
-            sum += Math.pow(entry, 2);
-        }
-        return Math.sqrt(sum);
-    }
+    public double cosineSimilarity(Vector other);
 
-    public double cosineSimilarity(Vector other) {
-        return this.dot(other) / (this.euclidianNorm() * other.euclidianNorm());
-    }
+    public void normalize();
 
-    public void normalize() {
-        double norm = this.euclidianNorm();
-        for (int i = 0; i < this.dims; i++) {
-            this.set(i, this.get(i) / norm);
-        }
-    }
+    public Iterator<Double> iterator();
 
-    public Iterator<Double> iterator() {
-        Double[] valueArray = new Double[this.dims];
-        for (int i = 0; i < valueArray.length; i++) {
-            valueArray[i] = this.get(i);
-        }
-        return Arrays.asList(valueArray).iterator();
-    }
+    public int getDims();
 
-    protected void exceptionIfInvalidIndex(int index) {
-        if (index >= this.dims || index < 0) {
-            throw new IllegalArgumentException(
-                index + " is not a valid index in vector of dimension " + this.dims
-                ); 
-        }
-    }
-
-    protected void exceptionIfDifferentLengths(Vector other) {
-        if (this.dims != other.getDims()) {
-            throw new IllegalArgumentException(
-                "This has dimension " + this.dims + ", other has dimension " + other.getDims()
-                ); 
-        }
-    }
-
-    public int getDims() {
-        return this.dims;
-    }
-
-    public abstract double get(int index);
-    public abstract void set(int index, double value);
-} 
+    public double get(int index);
+    public void set(int index, double value);
+}

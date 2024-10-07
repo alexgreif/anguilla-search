@@ -1,7 +1,6 @@
 package de.fernunihagen.dbis.anguillasearch;
 
 import java.util.Map;
-import java.util.List;
 import java.util.Set;
 
 import java.util.HashMap;
@@ -15,11 +14,11 @@ public class ReverseIndex {
         int nPages = fi.nPages();
 
         // Build initial map with tokens and pages
-        for (Entry<String, List<String>> pageTokens : fi.entrySet()) {
+        for (Entry<String, ForwardIndex.ForwardIndexEntry> pageTokens : fi.entrySet()) {
             String url = pageTokens.getKey();
-            List<String> tkns = pageTokens.getValue();
-            for (String tkn : tkns) {
-                this.add(tkn, url);
+            CountMap<String> tkns = pageTokens.getValue().tokenCounts;
+            for (Entry<String, Integer> tkn : tkns.entrySet()) {
+                this.add(tkn.getKey(), url, tkn.getValue());
             }
         }
 
@@ -29,7 +28,7 @@ public class ReverseIndex {
             int nPagesWithToken = urls.nPages();
             for (Entry<String, Double> elem : urls.entrySet()) {
                 String url = elem.getKey();
-                int nTokensOnPage = fi.nTokens(url);
+                int nTokensOnPage = fi.nTokens(url, false);
                 int countTokenOnPage = elem.getValue().intValue();
                 double tfIdf = computeTfIdf(countTokenOnPage, nTokensOnPage, nPages, nPagesWithToken);
                 urls.setTfIdf(url, tfIdf);
@@ -45,12 +44,9 @@ public class ReverseIndex {
         return this.getPagesContaining(token).getUrls();
     }
 
-    private void add(String token, String url) {
-        if (!tokenToPagesMap.containsKey(token)) {
-            tokenToPagesMap.put(token, new TfIdfMap(url));
-        } else {
-            tokenToPagesMap.get(token).addOrIncrement(url);
-        }
+    private void add(String token, String url, int count) {
+        tokenToPagesMap.putIfAbsent(token, new TfIdfMap());
+        tokenToPagesMap.get(token).setTfIdf(url, (double)count);
     }
 
     static double computeTfIdf(int countTokenOnPage, int nTokensOnPage, int nPages, int nPagesWithToken) {
@@ -82,13 +78,9 @@ public class ReverseIndex {
             this.map = new HashMap<>();
         }
 
-        TfIdfMap(String url) {
+        TfIdfMap(String url, int count) {
             this.map = new HashMap<>();
-            this.map.put(url, 1.);
-        }
-
-        void addOrIncrement(String url) {
-            this.map.merge(url, 1., Double::sum);
+            this.map.put(url, (double)count);
         }
 
         boolean containsPage(String url) {

@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
-public class HashVector extends Vector {
+public class HashVector extends AbstractVector {
     Map<Integer, Double> map;
 
     public HashVector(int dims) {
@@ -41,6 +41,11 @@ public class HashVector extends Vector {
         }
     }
 
+    public static HashVector fromCountMap(CountMap countMap, boolean normalize) {
+        // Not yet implemented
+        return new HashVector(1);
+    }
+
     @Override
     public double dot(Vector other) {
         double sum = 0;
@@ -50,12 +55,34 @@ public class HashVector extends Vector {
         return sum;
     }
 
-    public double dot(HashVector other) {
-        Set<Integer> nonZeroIndices = new HashSet<>(this.map.keySet());
-        nonZeroIndices.retainAll(other.map.keySet());
+    public double dotSymmetrical(HashVector other) {
+        // Best to use if both vectors have quite a few non-zero entries
+        // but intersection is rather small
+        Set<Integer> nonZeroIndices = this.nonZeroIndices();
+        nonZeroIndices.retainAll(other.nonZeroIndices());
         double sum = 0;
         for (int i : nonZeroIndices) {
             sum += this.get(i) * other.get(i);
+        }
+        return sum;
+    }
+
+    public double dotAsymmetrical(HashVector other) {
+        // Better to use if one vector has fewer non-zero values than other
+        // but unclear which one
+        if (this.nonZeroIndices().size() < other.nonZeroIndices().size()) {
+            return this.dotThisBased(other);
+        }
+        return other.dotThisBased(this);
+    }
+
+    public double dotThisBased(HashVector other) {
+        // Better to use if this has fewer non-zero entries than other
+        Set<Integer> nonZeroIndices = this.nonZeroIndices();
+        nonZeroIndices.retainAll(other.nonZeroIndices());
+        double sum = 0;
+        for (Entry<Integer, Double> entry : this.map.entrySet()) {
+            sum += entry.getValue() * other.get(entry.getKey());
         }
         return sum;
     }
@@ -64,16 +91,16 @@ public class HashVector extends Vector {
     public double euclidianNorm() {
         double sum = 0;
         for (double value : this.map.values()) {
-            sum += Math.pow(value, 2);
+            sum += value*value;
         }
         return Math.sqrt(sum);
     }
 
     @Override
     public void normalize() {
-        double norm = this.euclidianNorm();
+        double invNorm = 1 / this.euclidianNorm();
         for (Entry<Integer, Double> entry : this.map.entrySet()) {
-            this.set(entry.getKey(), entry.getValue() / norm);
+            this.set(entry.getKey(), entry.getValue() * invNorm);
         }
     }
 
@@ -85,5 +112,9 @@ public class HashVector extends Vector {
     public double get(int index) {
         this.exceptionIfInvalidIndex(index);
         return this.map.getOrDefault(index, 0.);
+    }
+
+    private Set<Integer> nonZeroIndices() {
+        return this.map.keySet();
     }
 }

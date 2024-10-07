@@ -26,16 +26,25 @@ class SearchTests {
         Index index = new Index(seedUrls);
 
         // Place your code here to execute the search
-        Index.SearchResult result = index.search(String.join(", ", query));
-        result.sort();
-        List<String> foundUrls = result.getUrls(); 
+        Index.SearchResult resultTfIdf = index.tfIdfSearch(String.join(", ", query));
+        Index.SearchResult resultCosine = index.vectorSearch(String.join(", ", query));
+        List<String> foundUrlsTfIdf = resultTfIdf.getUrls(); 
+        List<String> foundUrlsCosine = resultCosine.getUrls();
+
+        // Print results
+        System.out.println("Expected\n" + Arrays.asList(expectedURLs) + "\n");
+        System.out.println("TfIdf");
+        resultTfIdf.prettyPrint();
+        System.out.println(resultTfIdf);
+        System.out.println("\nCosine Similarity");
+        resultCosine.prettyPrint();
+        System.out.println(resultCosine);
 
         // Verify that the found URLs are correct, i.e. the same as stated in the JSON file
         // Uncomment the following line once you have implemented the search
-        assertTrue(foundUrls.containsAll(Arrays.asList(expectedURLs)));
+        assertTrue(foundUrlsTfIdf.containsAll(Arrays.asList(expectedURLs)));
+        assertTrue(foundUrlsCosine.containsAll(Arrays.asList(expectedURLs)));
 
-        System.out.println(result);
-        System.out.println(Arrays.asList(expectedURLs));
 
         // Remove the following line after adding your code!
     }

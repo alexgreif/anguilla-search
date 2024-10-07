@@ -22,14 +22,14 @@ public class StringProcessing {
         
     }
 
-    public static List<String> process(String text) {
+    public static CountMap<String> process(String text) {
         List<String> tkns = tokenize(text);
         try {
         tkns = removeStopwords(tkns);
         } catch(IOException e) {
             System.out.println("No stopwords.txt found");
         }
-        List<String> tknsProcessed = new ArrayList<>();
+        CountMap<String> tknsProcessed = new CountMap<>();
         for (String tkn : tkns) {
             tknsProcessed.add(lemmatize(tkn));
         }
