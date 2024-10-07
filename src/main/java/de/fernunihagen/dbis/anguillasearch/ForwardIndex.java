@@ -27,6 +27,10 @@ public class ForwardIndex {
         return map.get(url).tokenCounts;
     }
 
+    public NormalizedVectorMap getVectorOf(String url) {
+        return map.get(url).normalizedCountVector;
+    }
+
     public int nTokens(String url, boolean distinct) {
         return distinct ? this.getTokensOf(url).nDistinct() : this.getTokensOf(url).totalCount();
     }

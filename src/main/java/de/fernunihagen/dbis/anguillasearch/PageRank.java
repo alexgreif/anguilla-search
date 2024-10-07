@@ -5,38 +5,53 @@ import java.util.Map.Entry;
 import java.util.HashMap;
 import java.util.Collection;
 import java.util.Set;
+import java.util.HashSet;
 
 public class PageRank {
     private Map<String, Double> map;
+    private double dampingFactor;
+    private double rankSource;
+    private double epsilon;
+    private double maxIters;
+    private boolean verbose;
 
-    public PageRank(Crawler crawler, double epsilon, int maxIters, boolean verbose) {
-        Collection<Page> pages = crawler.getPages();
-        // Get incoming and outgoing Links
+    public PageRank(Collection<Page> pages, double dampingFactor, double epsilon, boolean verbose) {
+        this(pages, dampingFactor, epsilon, -1, verbose);
+    }
+
+    public PageRank(Collection<Page> pages, double dampingFactor, double epsilon, int maxIters, boolean verbose) {
+        
+        // Create three needed data structures from page list
+        Set<String> urls = new HashSet<>();
         Map<String, Set<String>> incomingLinks = new HashMap<>();
-        for (Page page : pages) {
-            incomingLinks.put(page.url, page.getIncomingLinks());
-        }
         Map<String, Double> invNumOutLinks = new HashMap<>();
         for (Page page : pages) {
+            incomingLinks.put(page.url, page.getIncomingLinks());
             invNumOutLinks.put(page.url, 1. / page.nOutgoingLinks(true));
+            urls.add(page.url);
         }
-        // Initialize
-        Set<String> urls = incomingLinks.keySet();
+
+        // Initialize instance variables
         Double initialRank = 1. / urls.size();
         this.map = new HashMap<>();
         for (String url : urls) {
             this.map.put(url, initialRank);
         }
-
-        // Iterate
-        this.compute(incomingLinks, invNumOutLinks, epsilon, maxIters, verbose);
+        this.dampingFactor = dampingFactor;
+        this.rankSource = (1 - dampingFactor) * initialRank;
+        this.epsilon = epsilon;
+        this.maxIters = maxIters;
+        this.verbose = verbose;
+        
+        // Compute PageRank
+        this.compute(incomingLinks, invNumOutLinks);
     }
 
-    private void compute(Map<String, Set<String>> incomingLinks, Map<String, Double> invNumOutLinks, double epsilon, double maxIters, boolean verbose) {
+    private void computeLimitedIters(Map<String, Set<String>> incomingLinks, Map<String, Double> invNumOutLinks) {
         double diffSum = 1;
         int i = 0;
-        if (verbose) {
-            while (diffSum >= epsilon && i < maxIters) {
+        if (this.verbose) {
+            while (diffSum >= this.epsilon && i < this.maxIters) {
                 System.out.println("Iteration " + i);
                 System.out.println("Summed Differences = " + diffSum);
                 this.prettyPrint();
@@ -47,7 +62,29 @@ public class PageRank {
             System.out.println("Summed Differences = " + diffSum);
             this.prettyPrint();
         } else {
-            while (diffSum >= epsilon && i < maxIters) {
+            while (diffSum >= this.epsilon && i < this.maxIters) {
+                diffSum = this.iterate(incomingLinks, invNumOutLinks);
+                i++;
+            }
+        }
+    }
+
+    private void compute(Map<String, Set<String>> incomingLinks, Map<String, Double> invNumOutLinks) {
+        double diffSum = 1;
+        int i = 0;
+        if (this.verbose) {
+            while (diffSum >= this.epsilon) {
+                System.out.println("Iteration " + i);
+                System.out.println("Summed Differences = " + diffSum);
+                this.prettyPrint();
+                diffSum = this.iterate(incomingLinks, invNumOutLinks);
+                i++;
+            }
+            System.out.println("Iteration " + i);
+            System.out.println("Summed Differences = " + diffSum);
+            this.prettyPrint();
+        } else {
+            while (diffSum >= this.epsilon) {
                 diffSum = this.iterate(incomingLinks, invNumOutLinks);
                 i++;
             }
@@ -58,10 +95,11 @@ public class PageRank {
         Map<String, Double> newRanks = new HashMap<>();
         double diffSum = 0;
         for (Entry<String, Set<String>> entry : incomingLinks.entrySet()) {
-            double newRank = 0.;
+            double simpleRank = 0.;
             for (String link : entry.getValue()) {
-                newRank += this.map.get(link) * invNumOutLinks.get(link);
+                simpleRank += this.map.get(link) * invNumOutLinks.get(link);
             }
+            double newRank = this.dampingFactor * simpleRank + this.rankSource;
             newRanks.put(entry.getKey(), newRank);
             double diff = newRank - this.map.get(entry.getKey());
             diffSum += Math.abs(diff);

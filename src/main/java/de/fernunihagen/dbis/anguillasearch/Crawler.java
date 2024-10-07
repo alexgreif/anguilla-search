@@ -50,6 +50,14 @@ public class Crawler {
         return results;
     }
 
+    public Map<String, Set<String>> outgoingLinkMap() {
+        Map<String, Set<String>> outgoingLinks = new HashMap<>();
+        for (Page page : this.pages.values()) {
+            outgoingLinks.put(page.url, page.getOutgoingLinks());
+        }
+        return outgoingLinks;
+    }
+
     public List<Link> getAllLinks() {
         // Can include links to pages that are not in this.pages
         // For example when 

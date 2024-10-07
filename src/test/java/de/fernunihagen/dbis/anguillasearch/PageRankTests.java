@@ -10,6 +10,8 @@ import java.util.logging.Level;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.joda.time.LocalDateTime;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -20,6 +22,7 @@ class PageRankTests {
     private static final Logger logger = Logger.getLogger(PageRankTests.class.getName());
     static List<JsonObject> testJSONs = new ArrayList<>();
     static List<Map<String, Double>> pageRankForAllIntranets;
+    static double dampingFactor;
 
     @BeforeAll
     static void setUp() throws IOException {
@@ -39,7 +42,10 @@ class PageRankTests {
             // Add your code here to calculate the page rank
             Crawler crawler = new Crawler(seedUrls);
             crawler.crawl();
-            PageRank pageRank = new PageRank(crawler, 0.0000001, 20, true);
+            System.out.println(LocalDateTime.now() + " crawled");
+            dampingFactor = 0.85;
+            PageRank pageRank = new PageRank(crawler.getPages(), dampingFactor, Math.pow(10, -10), Integer.MAX_VALUE, false);
+            System.out.println(LocalDateTime.now() + " PageRanked");
 
             // Add the crawler and page rank instances to the map
             pageRankForAllIntranets.add(pageRank.getMap());
@@ -85,7 +91,6 @@ class PageRankTests {
                     }
                 }
                 // Adjust the damping factor to match your implementation
-                double dampingFactor = 1.;
                 double rankSource = (1.0 - dampingFactor) * (1.0 / numPages);
                 
                 assertTrue(Math.abs(seedPageRank - rankSource) < 0.001);
