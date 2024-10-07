@@ -40,7 +40,7 @@ public final class AnguillaSearch {
         try {
             graph.draw("figures/net-graph.png");
         } catch (IOException e) {
-            System.out.println(e);
+            LOGGER.error(e.getMessage());
         }
     }
 }

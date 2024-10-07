@@ -1,10 +1,12 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.vectors;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map.Entry;
+
+import de.fernunihagen.dbis.anguillasearch.CountMap;
 
 public class HashVector extends AbstractVector {
     Map<Integer, Double> map;

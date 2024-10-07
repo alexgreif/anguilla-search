@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import de.fernunihagen.dbis.anguillasearch.vectors.HashVector;
+import de.fernunihagen.dbis.anguillasearch.vectors.Vector;
+
 /**
  * Unit tests for cosine similarity.
  */

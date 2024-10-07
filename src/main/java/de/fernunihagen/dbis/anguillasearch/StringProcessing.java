@@ -16,7 +16,12 @@ import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class StringProcessing {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StringProcessing.class);
 
     private StringProcessing() {
         
@@ -27,7 +32,7 @@ public class StringProcessing {
         try {
         tkns = removeStopwords(tkns);
         } catch(IOException e) {
-            System.out.println("No stopwords.txt found");
+            LOGGER.error("No stopwords.txt found");
         }
         CountMap<String> tknsProcessed = new CountMap<>();
         for (String tkn : tkns) {
