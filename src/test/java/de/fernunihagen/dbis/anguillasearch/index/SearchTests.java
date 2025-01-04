@@ -1,13 +1,18 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.index;
+
 import java.util.List;
+import java.util.Map.Entry;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedList;
 
 import org.junit.jupiter.api.Test;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+
+import de.fernunihagen.dbis.anguillasearch.*;
 /**
  * Unit tests for the search.
  */
@@ -25,16 +30,18 @@ class SearchTests {
         // Execute a search with the given query in the given network via the seed URLs
         Crawler crawler = new Crawler(seedUrls);
         crawler.crawl();
-        SearchEngine eng = new SearchEngine(crawler.getPages());
+        Index index = new Index(crawler.getPages());
 
         // Place your code here to execute the search
-        SearchEngine.SearchResult results = eng.search(String.join(", ", query));
-        List<String> foundUrls = results.getUrls();
+        List<Entry<String, Double>> results = index.searchQuery(String.join(", ", query));
+        List<String> foundUrls = new LinkedList<>();
+        for (Entry<String, Double> entry : results) {
+            foundUrls.add(entry.getKey());
+        }
 
         // Print results
         System.out.println("Expected\n" + Arrays.asList(expectedURLs) + "\n");
-        System.out.println("Found");
-        results.prettyPrint();
+        System.out.println("Found\n" + foundUrls);
 
         // Verify that the found URLs are correct, i.e. the same as stated in the JSON file
         // Uncomment the following line once you have implemented the search
