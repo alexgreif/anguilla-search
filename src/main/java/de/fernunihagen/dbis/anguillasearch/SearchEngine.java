@@ -2,12 +2,7 @@ package de.fernunihagen.dbis.anguillasearch;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Scanner;
-import java.util.LinkedHashMap;
 import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
@@ -130,94 +125,6 @@ public class SearchEngine {
         score += pageRank * pageRankWeight;
         score = score / (cosineSimilarityWeight + tfIdfWeight + pageRankWeight);
         return score;
-    }
-
-    /**
-     * Search using only TfIdf.
-     * Used only for testing.
-     * 
-     * @param query the search query
-     * @return search results sorted descending by TfIdf
-     */
-    public SimpleSearchResult tfIdfSearch(String query) {
-        CountMap<String> queryTokens = StringProcessing.process(query);
-        ReverseIndex.UrlToTfIdfMap queryTokenResult = new ReverseIndex.UrlToTfIdfMap();
-        for (String token : queryTokens.keySet()) {
-            queryTokenResult.merge(ri.getPagesContaining(token));
-        }
-        return new SimpleSearchResult(queryTokenResult);
-    }
-
-
-    /**
-     * Search using only Cosine Similarity.
-     * Used only for testing.
-     * 
-     * @param query the search query
-     * @return search results sorted descending by Cosine Similarity
-     */
-    public SimpleSearchResult vectorSearch(String query) {
-        CountMap<String> queryTokens = StringProcessing.process(query);
-        // System.out.println("Found following tokens and weights:");
-        // for (Entry<String, Integer> entry : queryTokens.entrySet()) {
-        //     System.out.println(entry.getKey() + ": " + entry.getValue());
-        // }
-        // System.out.println("If you want to assign a new weight to a token, type 'token: weight'");
-        // System.out.println("When you are done, submit an empty line.");
-        // while (True) {
-        //     System.in.
-        // }
-        NormalizedVectorMap normalizedQueryVector = new NormalizedVectorMap(queryTokens.getMap());
-        Map<String, Double> results = new HashMap<>();
-        for (Entry<String, ForwardIndex.ForwardIndexEntry> entry : this.fi.entrySet()) {
-            double cosineSimilarity = normalizedQueryVector.dotThisBased(entry.getValue().normalizedCountVector);
-            if (cosineSimilarity != 0) {
-                results.put(entry.getKey(), cosineSimilarity);
-            }
-        }
-        return new SimpleSearchResult(results);
-    }
-
-    /**
-     * Results of search using only one metric.
-     * Used only for testing.
-     */
-    public static class SimpleSearchResult {
-        Map<String, Double> results;
-
-        public SimpleSearchResult(ReverseIndex.UrlToTfIdfMap tfIdfMap) {
-            this.results = new LinkedHashMap<>(tfIdfMap.getMap());
-            this.sort();
-        }
-
-        public SimpleSearchResult(Map<String, Double> resultsMap) {
-            this.results = new LinkedHashMap<>(resultsMap);
-            this.sort();
-        }
-
-        public void sort() {
-            List<Entry<String, Double>> list = new ArrayList<>(this.results.entrySet());
-            list.sort(Entry.comparingByValue(Collections.reverseOrder()));
-            Map<String, Double> resultsSorted = new LinkedHashMap<>();
-            for (Entry<String, Double> entry : list) {
-                resultsSorted.put(entry.getKey(), entry.getValue());
-            }
-            this.results = resultsSorted;
-        }
-
-        public List<String> getUrls() {
-            return new ArrayList<>(this.results.keySet());
-        }
-
-        public String toString() {
-            return results.toString();
-        }
-
-        public void  yPrint() {
-            for (Entry<String, Double> entry : this.results.entrySet()) {
-                System.out.println(entry.getKey() + ": " + String.format("%.3f", entry.getValue()));
-            }
-        }
     }
 
     /**
