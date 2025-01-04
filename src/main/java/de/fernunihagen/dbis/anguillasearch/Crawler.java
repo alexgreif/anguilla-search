@@ -47,7 +47,7 @@ public class Crawler {
     }
 
     /**
-     * Crawls pages based on seedUrls until maxPages pages (including seed pages) have been found.
+     * Crawls pages based on seed URLs until maxPages pages (including seed pages) have been found.
      * If maxPages is smaller than the number of seed URLs, will scrape all seed URLs but nothing else.
      * 
      * @param maxPages maximum number of pages to be crawled (including seed pages)

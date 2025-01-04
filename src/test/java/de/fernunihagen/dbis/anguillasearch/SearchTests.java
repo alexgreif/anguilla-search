@@ -23,27 +23,22 @@ class SearchTests {
         // Extract the expected URLs from the JSON file
         String[] expectedURLs = new Gson().fromJson(testJSON.get("Query-URLs"), String[].class);
         // Execute a search with the given query in the given network via the seed URLs
-        Index index = new Index(seedUrls);
+        Crawler crawler = new Crawler(seedUrls);
+        crawler.crawl();
+        SearchEngine eng = new SearchEngine(crawler.getPages());
 
         // Place your code here to execute the search
-        Index.SimpleSearchResult resultTfIdf = index.tfIdfSearch(String.join(", ", query));
-        Index.SimpleSearchResult resultCosine = index.vectorSearch(String.join(", ", query));
-        List<String> foundUrlsTfIdf = resultTfIdf.getUrls(); 
-        List<String> foundUrlsCosine = resultCosine.getUrls();
+        SearchEngine.SearchResult results = eng.search(String.join(", ", query));
+        List<String> foundUrls = results.getUrls();
 
         // Print results
         System.out.println("Expected\n" + Arrays.asList(expectedURLs) + "\n");
-        System.out.println("TfIdf");
-        resultTfIdf.prettyPrint();
-        System.out.println(resultTfIdf);
-        System.out.println("\nCosine Similarity");
-        resultCosine.prettyPrint();
-        System.out.println(resultCosine);
+        System.out.println("Found");
+        results.prettyPrint();
 
         // Verify that the found URLs are correct, i.e. the same as stated in the JSON file
         // Uncomment the following line once you have implemented the search
-        assertTrue(foundUrlsTfIdf.containsAll(Arrays.asList(expectedURLs)));
-        assertTrue(foundUrlsCosine.containsAll(Arrays.asList(expectedURLs)));
+        assertTrue(foundUrls.containsAll(Arrays.asList(expectedURLs)));
 
 
         // Remove the following line after adding your code!

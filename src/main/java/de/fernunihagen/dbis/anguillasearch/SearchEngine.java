@@ -1,27 +1,45 @@
 package de.fernunihagen.dbis.anguillasearch;
-import com.google.gson.JsonElement;
 
-import com.google.gson.JsonArray;
 import java.util.List;
 import java.util.ArrayList;
-import java.io.IOException;
-
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
+import java.util.LinkedHashMap;
+import java.util.Collection;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+/**
+ * An index consists of a Forward Index, a Reverse Index and Page Ranks.
+ */
 public class SearchEngine {
-    Crawler crawler;
-    Index index;
+    ForwardIndex fi;
+    ReverseIndex ri;
+    PageRank pr;
+    static final double COSINESIMILARITYWEIGHT = 1;
+    static final double TFIDFWEIGHT = 0;
+    static final double PAGERANKWEIGHT = 1;
     
-    public SearchEngine() throws IOException {
-        this.crawler = new Crawler(getAllSeedUrls());
-        crawler.crawl();
-        System.out.println("Pages indexed: " + crawler.nPages());
-        System.out.println("...");
-        this.index = new Index(crawler.getPages());
-        System.out.println("Search Engine ready");
-        System.out.println();
+    /**
+     * Constructs Search Engine from Collection of pages.
+     * 
+     * @param pages {@code Collection} of {@code Page}s for which to create index
+     */
+    public SearchEngine(Collection<Page> pages) {
+        this.fi = new ForwardIndex(pages);
+        this.ri = new ReverseIndex(fi);
+        this.pr = new PageRank(pages, 0.85, Math.pow(10,-12), false);
     }
 
+    /**
+     * Starts search engine
+     */
     public void run() {
         System.out.println("You can start your search now...");
         System.out.println();
@@ -36,36 +54,241 @@ public class SearchEngine {
         }
     }
 
-    private void search(String query) {
-        Index.SearchResult results = index.search(query);
-        results.prettyPrint();
+    /**
+     * Search web pages in index for a query.
+     * Calculates final score as weighted average of Cosine Similarity, TfIdf and Page Rank.
+     * 
+     * @param query the search query
+     * @param cosineSimilarityWeight
+     * @param tfIdfWeight
+     * @param pageRankWeight
+     * @return Search results sorted by score
+     */
+    public SearchResult search(String query, double cosineSimilarityWeight, double tfIdfWeight, double pageRankWeight) {
+        // Get URLs of pages containing at least one of the tokens and calculate TfIdf summed for all tokens
+        CountMap<String> queryTokens = StringProcessing.process(query);
+        ReverseIndex.UrlToTfIdfMap queryTokenResult = new ReverseIndex.UrlToTfIdfMap();
+        for (String token : queryTokens.keySet()) {
+            queryTokenResult.merge(ri.getPagesContaining(token));
+        }
+
+        // Calculate other metrics
+        NormalizedVectorMap normalizedQueryVector = new NormalizedVectorMap(queryTokens.getMap());
+        SearchResult results = new SearchResult();
+        for (String url : queryTokenResult.getUrls()) {
+            double tfIdf = queryTokenResult.getTfIdfOf(url);
+            double cosineSimilarity = normalizedQueryVector.dotThisBased(fi.getVectorOf(url));
+            double pageRank = this.pr.getRankOf(url);
+            double score = computeScore(cosineSimilarity, tfIdf, pageRank, cosineSimilarityWeight, tfIdfWeight, pageRankWeight);
+            results.add(new SearchResult.SearchResultEntry(url, score, cosineSimilarity, tfIdf, pageRank));
+        }
+
+        return results;
     }
 
-    private static List<String> getAllSeedUrls() throws IOException {
-        // Load the metadata from the JSON file
-        List<String> fileNames = new ArrayList<>();
-        fileNames.add("intranet/cheesy1-f126d0d3.json");
-        fileNames.add("intranet/cheesy2-c79b0581.json");
-        fileNames.add("intranet/cheesy3-7fdaa098.json");
-        fileNames.add("intranet/cheesy4-a31d2f0d.json");
-        //fileNames.add("intranet/cheesy5-d861877d.json");
-        fileNames.add("intranet/cheesy6-54ae2b2e.json");
+    /**
+     * Search web pages in index for a query.
+     * Calculates final score as weighted average of Cosine Similarity, TfIdf and Page Rank.
+     * Uses default weights defined as class attributes.
+     * 
+     * @param query the search query
+     * @return Search results sorted by score
+     */
+    public SearchResult search(String query) {
+        return search(query, COSINESIMILARITYWEIGHT, TFIDFWEIGHT, PAGERANKWEIGHT);
+    }
 
-        List<String> seedUrls = new ArrayList<>();
-        for (String fileName : fileNames) {
-            for (String seedUrl : getSeedUrls(fileName)) {
-                seedUrls.add(seedUrl);
+    /**
+     * Computes overall score as weighted average of Cosine Similarity, TfIdf and Page Rank.
+     * Uses default weights defined as class attributes. 
+     * 
+     * @param cosineSimilarity
+     * @param tfIdf
+     * @param pageRank
+     * @return overall score
+     */
+    private static double computeScore(double cosineSimilarity, double tfIdf, double pageRank) {
+        return computeScore(cosineSimilarity, tfIdf, pageRank,
+        COSINESIMILARITYWEIGHT, TFIDFWEIGHT, PAGERANKWEIGHT);
+    }
+
+    /**
+     * Compute overall score as weighted average of Cosine Similarity, TfIdf and Page Rank.
+     * 
+     * @param cosineSimilarity
+     * @param tfIdf
+     * @param pageRank
+     * @param cosineSimilarityWeight
+     * @param tfIdfWeight
+     * @param pageRankWeight
+     * @return overall score
+     */
+    private static double computeScore(double cosineSimilarity, double tfIdf, double pageRank,
+    double cosineSimilarityWeight, double tfIdfWeight, double pageRankWeight) {
+        double score = cosineSimilarity * cosineSimilarityWeight;
+        score += tfIdf * tfIdfWeight;
+        score += pageRank * pageRankWeight;
+        score = score / (cosineSimilarityWeight + tfIdfWeight + pageRankWeight);
+        return score;
+    }
+
+    /**
+     * Search using only TfIdf.
+     * Used only for testing.
+     * 
+     * @param query the search query
+     * @return search results sorted descending by TfIdf
+     */
+    public SimpleSearchResult tfIdfSearch(String query) {
+        CountMap<String> queryTokens = StringProcessing.process(query);
+        ReverseIndex.UrlToTfIdfMap queryTokenResult = new ReverseIndex.UrlToTfIdfMap();
+        for (String token : queryTokens.keySet()) {
+            queryTokenResult.merge(ri.getPagesContaining(token));
+        }
+        return new SimpleSearchResult(queryTokenResult);
+    }
+
+
+    /**
+     * Search using only Cosine Similarity.
+     * Used only for testing.
+     * 
+     * @param query the search query
+     * @return search results sorted descending by Cosine Similarity
+     */
+    public SimpleSearchResult vectorSearch(String query) {
+        CountMap<String> queryTokens = StringProcessing.process(query);
+        // System.out.println("Found following tokens and weights:");
+        // for (Entry<String, Integer> entry : queryTokens.entrySet()) {
+        //     System.out.println(entry.getKey() + ": " + entry.getValue());
+        // }
+        // System.out.println("If you want to assign a new weight to a token, type 'token: weight'");
+        // System.out.println("When you are done, submit an empty line.");
+        // while (True) {
+        //     System.in.
+        // }
+        NormalizedVectorMap normalizedQueryVector = new NormalizedVectorMap(queryTokens.getMap());
+        Map<String, Double> results = new HashMap<>();
+        for (Entry<String, ForwardIndex.ForwardIndexEntry> entry : this.fi.entrySet()) {
+            double cosineSimilarity = normalizedQueryVector.dotThisBased(entry.getValue().normalizedCountVector);
+            if (cosineSimilarity != 0) {
+                results.put(entry.getKey(), cosineSimilarity);
             }
         }
-        return seedUrls;
+        return new SimpleSearchResult(results);
     }
 
-    private static List<String> getSeedUrls(String net) throws IOException {
-        JsonArray seedUrlsJson = Utils.parseJSONFile(net).get("Seed-URLs").getAsJsonArray();
-        List<String> seedUrls = new ArrayList<>();
-        for (JsonElement url : seedUrlsJson) {
-            seedUrls.add(url.getAsString());
+    /**
+     * Results of search using only one metric.
+     * Used only for testing.
+     */
+    public static class SimpleSearchResult {
+        Map<String, Double> results;
+
+        public SimpleSearchResult(ReverseIndex.UrlToTfIdfMap tfIdfMap) {
+            this.results = new LinkedHashMap<>(tfIdfMap.getMap());
+            this.sort();
         }
-        return seedUrls;
+
+        public SimpleSearchResult(Map<String, Double> resultsMap) {
+            this.results = new LinkedHashMap<>(resultsMap);
+            this.sort();
+        }
+
+        public void sort() {
+            List<Entry<String, Double>> list = new ArrayList<>(this.results.entrySet());
+            list.sort(Entry.comparingByValue(Collections.reverseOrder()));
+            Map<String, Double> resultsSorted = new LinkedHashMap<>();
+            for (Entry<String, Double> entry : list) {
+                resultsSorted.put(entry.getKey(), entry.getValue());
+            }
+            this.results = resultsSorted;
+        }
+
+        public List<String> getUrls() {
+            return new ArrayList<>(this.results.keySet());
+        }
+
+        public String toString() {
+            return results.toString();
+        }
+
+        public void  yPrint() {
+            for (Entry<String, Double> entry : this.results.entrySet()) {
+                System.out.println(entry.getKey() + ": " + String.format("%.3f", entry.getValue()));
+            }
+        }
+    }
+
+    /**
+     * Results of a search by all three metrics Cosine Similarity, TfIdf and Page Rank.
+     */
+    public static class SearchResult {
+        SortedSet<SearchResultEntry> results;
+
+        public SearchResult() {
+            this.results = new TreeSet<>();
+        }
+
+        public void add(SearchResultEntry entry) {
+            this.results.add(entry);
+        }
+
+        public List<String> getUrls() {
+            List<String> urls = new ArrayList<>();
+            for (SearchResultEntry entry : this.results) {
+                urls.add(entry.url);
+            }
+            return urls;
+        }
+
+        public String toString() {
+            return this.results.toString();
+        }
+
+        public void prettyPrint() {
+            String urlFormat = "%1$-45s";
+            System.out.println(String.format(urlFormat, "| URL") + " | " +
+            "Score" + " | " +
+            "Cosine Similarity" + " | " +
+            "TfIdf" + " | " +
+            "PageRank" + " | ");
+            System.out.println("-----------------------------------------------" +
+            "-----------------------------------------------");
+            
+            for (SearchResultEntry entry : this.results) {
+                System.out.println(String.format(urlFormat, "| " + entry.url) + " | " +
+                StringUtils.center(String.format("%.3f", entry.score), 5) + " | " +
+                StringUtils.center(String.format("%.3f", entry.cosineSimilarity), 17) + " | " +
+                StringUtils.center(String.format("%.3f", entry.tfIdf), 5) + " | " +
+                StringUtils.center(String.format("%.3f", entry.pageRank), 8) + " | ");
+            }
+            System.out.println("-----------------------------------------------" +
+            "-----------------------------------------------");
+            System.out.println();
+        }
+
+        static class SearchResultEntry implements Comparable<SearchResultEntry> {
+            String url;
+            Double score;
+            Double cosineSimilarity;
+            Double tfIdf;
+            Double pageRank;
+
+            SearchResultEntry(String url, Double score, Double cosineSimilarity, Double tfIdf, Double pageRank) {
+                this.url = url;
+                this.score = score;
+                this.cosineSimilarity = cosineSimilarity;
+                this.tfIdf = tfIdf;
+                this.pageRank = pageRank;
+            }
+
+            @Override
+            public int compareTo(final SearchResultEntry other) {
+                return Double.compare(other.score, this.score);
+            }
+        }
     }
 }
+
+
