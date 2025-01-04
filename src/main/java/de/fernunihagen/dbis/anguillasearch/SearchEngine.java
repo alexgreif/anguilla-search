@@ -148,14 +148,19 @@ public class SearchEngine {
         }
 
         public void prettyPrint() {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i=0; i<94; i++) {
+                stringBuilder.append("-");
+            }
+            String horizontalLine = stringBuilder.toString();
+            System.out.println(horizontalLine);
             String urlFormat = "%1$-45s";
             System.out.println(String.format(urlFormat, "| URL") + " | " +
             "Score" + " | " +
             "Cosine Similarity" + " | " +
             "TfIdf" + " | " +
             "PageRank" + " | ");
-            System.out.println("-----------------------------------------------" +
-            "-----------------------------------------------");
+            System.out.println(horizontalLine);
             
             for (SearchResultEntry entry : this.results) {
                 System.out.println(String.format(urlFormat, "| " + entry.url) + " | " +
@@ -164,8 +169,7 @@ public class SearchEngine {
                 StringUtils.center(String.format("%.3f", entry.tfIdf), 5) + " | " +
                 StringUtils.center(String.format("%.3f", entry.pageRank), 8) + " | ");
             }
-            System.out.println("-----------------------------------------------" +
-            "-----------------------------------------------");
+            System.out.println(horizontalLine);
             System.out.println();
         }
 

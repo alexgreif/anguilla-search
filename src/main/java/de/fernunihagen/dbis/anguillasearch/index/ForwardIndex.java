@@ -15,7 +15,7 @@ import java.util.Collection;
  * Once created, a Forward Index cannot be modified.
  */
 public class ForwardIndex {
-    private final Map<String, ForwardIndexEntry> map;
+    private final Map<String, ForwardIndexEntry> urlToFiEntry;
 
     /**
      * Creates a Forward Index from a Collection of Pages
@@ -23,10 +23,14 @@ public class ForwardIndex {
      * @param pages {@code Collection} of pages for which to build Forward Index
      */
     public ForwardIndex(Collection<Page> pages) {
-        map = new HashMap<>(); 
+        urlToFiEntry = new HashMap<>(); 
         for (Page page : pages) {
-            map.put(page.url, new ForwardIndexEntry(page.tokens()));
+            this.add(page);
         }
+    }
+
+    public void add(Page page) {
+        urlToFiEntry.put(page.url, new ForwardIndexEntry(page));
     }
 
     /**
@@ -35,7 +39,7 @@ public class ForwardIndex {
      * @return number of pages in this Forward Index
      */
     public int nPages() {
-        return map.size();
+        return urlToFiEntry.size();
     }
 
     /**
@@ -44,7 +48,7 @@ public class ForwardIndex {
      * @return {@code Set} of entries of this Forward Index
      */
     public Set<Entry<String, ForwardIndexEntry>> entrySet() {
-        return map.entrySet();
+        return urlToFiEntry.entrySet();
     }
 
     /**
@@ -54,7 +58,7 @@ public class ForwardIndex {
      * @return {@code CountMap} of tokens and their number of occurence on given page
      */
     public CountMap<String> getTokensOf(String url) {
-        return map.get(url).tokenToCount;
+        return urlToFiEntry.get(url).tokenToCount;
     }
 
     /**
@@ -65,7 +69,7 @@ public class ForwardIndex {
      * @return {@code NormalizedVectorMap} of tokens and their normalized numbers of occurence
      */
     public NormalizedVectorMap getVectorOf(String url) {
-        return map.get(url).normalizedCountVector;
+        return urlToFiEntry.get(url).normalizedCountVector;
     }
 
     /**
@@ -87,9 +91,9 @@ public class ForwardIndex {
         protected final CountMap<String> tokenToCount;
         protected final NormalizedVectorMap normalizedCountVector;
 
-        protected ForwardIndexEntry(CountMap<String> tokenCounts) {
-            this.tokenToCount = tokenCounts;
-            this.normalizedCountVector = new NormalizedVectorMap(tokenCounts.getMap());
+        protected ForwardIndexEntry(Page page) {
+            this.tokenToCount = StringProcessing.getTokenCounts(page.rawText());
+            this.normalizedCountVector = new NormalizedVectorMap(this.tokenToCount.getMap());
         }
     }
 }

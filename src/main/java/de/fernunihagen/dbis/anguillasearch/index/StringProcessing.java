@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -25,31 +24,35 @@ public class StringProcessing {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StringProcessing.class);
 
-    private StringProcessing() {
+    private StringProcessing() {}
+
+    public static CountMap<String> getTokenCounts(String text) {
+        List<String> tokens = process(text);
         
+        CountMap<String> tokenToCount = new CountMap<>();
+        for (String tkn : tokens) {
+            tokenToCount.add(tkn);
+        }
+        return tokenToCount;
     }
 
-    public static CountMap<String> process(String text) {
-        List<String> tkns = tokenize(text);
+    public static List<String> process(String text) {
+        // Lemmatize
+        List<String> tokens = lemmatize(text);
+
+        // Remove stop words
+        Set<String> stopwords;
         try {
-        tkns = removeStopwords(tkns);
+            stopwords = loadStopwords();
+            tokens.removeAll(stopwords);
         } catch(IOException e) {
-            LOGGER.error("No stopwords.txt found");
+            LOGGER.error("No stopwords.txt found, so no stop words were removed.");
         }
-        CountMap<String> tknsProcessed = new CountMap<>();
-        for (String tkn : tkns) {
-            tknsProcessed.add(lemmatize(tkn));
-        }
-        return tknsProcessed;
+        
+        return tokens;
     }
 
-    public static List<String> tokenize(String text) {
-        String[] tknsArray = text.toLowerCase().split("[\s.,!:;\\-\\)\\(_|&]+");
-        return new ArrayList<>(Arrays.asList(tknsArray));
-    }
-
-    public static List<String> removeStopwords(List<String> words) throws IOException{
-        List<String> wordsCopy = new ArrayList<>(words);
+    public static Set<String> loadStopwords() throws IOException{
         Set<String> stopwords = new HashSet<>();
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
         InputStream is = classloader.getResourceAsStream("stopwords.txt");
@@ -60,15 +63,18 @@ public class StringProcessing {
                 }
             }
         }
-        wordsCopy.removeAll(stopwords);
-        return wordsCopy;
+        return stopwords;
     }
 
-    public static String lemmatize(String text) {
-        // I couldn't figure out how to apply only lemmatization without tokenization, 
-        // so this function tokenizes before lemmatization 
-        // and then concatenates lemmata to one word
-
+    /**
+     * Lemmatizes a String.
+     * Returns a {@code List} of all lemmata that contain letters.
+     * Only returns lemmata that contain letters.
+     * 
+     * @param text {@code String} to be lemmatized
+     * @return {@code List} of lemmata
+     */
+    public static List<String> lemmatize(String text) {
         // Prepare pipeline
         Properties props = new Properties();
         props.setProperty("annotators","tokenize,ssplit,pos,lemma");
@@ -79,12 +85,15 @@ public class StringProcessing {
         annot.set(CoreAnnotations.TextAnnotation.class, text);
         pipeline.annotate(annot);
 
-        // Get and concatenate lemmata
-        StringBuilder lemma = new StringBuilder();
+        // Convert each lemma to lower case and dispose of all lemmata that do not contain letters
+        List<String> lemmata = new ArrayList<>();
         for (CoreLabel token : annot.get(CoreAnnotations.TokensAnnotation.class)) {
-            lemma.append(token.lemma());
+            String lemma = token.lemma().toLowerCase();
+            if (lemma.matches(".*[a-z].*")) {
+                lemmata.add(lemma);
+            }
         }
-        return lemma.toString();
+        return lemmata;
     }
 
 }

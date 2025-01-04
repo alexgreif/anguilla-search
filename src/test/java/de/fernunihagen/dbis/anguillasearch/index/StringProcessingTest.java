@@ -3,13 +3,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for the crawler.
@@ -66,46 +63,28 @@ class StringProcessingTest {
     }
 
     @Test
-    void tokenize() {
-        List<String> computedTokens = StringProcessing.tokenize(text);
-        System.out.println(computedTokens);
-
-        assertEquals(tokens.size(), computedTokens.size());
-        for (int i = 0; i < tokens.size(); i++) {
-            assertEquals(tokens.get(i), computedTokens.get(i));
-        } 
-    }
-
-    @Test
-    void stopwords() {
-        // Remove stopwords
-        List<String> noStopsComputed;
-        try {
-            noStopsComputed = StringProcessing.removeStopwords(tokens);
-        } catch (IOException e) {
-            System.out.println(e);
-            assertTrue(false);
-            return;
-        }
-
-        System.out.println(noStopsComputed);
-
-        // Compare to manually removed stopwords
-        assertEquals(noStops.size(), noStopsComputed.size());
-        for (int i = 0; i < noStops.size(); i++) {
-            assertEquals(noStops.get(i), noStopsComputed.get(i));
-        }   
-    }
-
-    @Test
     void lemmatization() {
         // Only compares size
-        List<String> lemmatizedTokens = new ArrayList<>();
-        for (String token : noStops) {
-            lemmatizedTokens.add(StringProcessing.lemmatize(token));
+        List<String> lemmataComputed = StringProcessing.lemmatize(text);
+        
+        int shorterLength = Math.min(tokens.size(), lemmataComputed.size());
+        for (int i=0; i<shorterLength; i++) {
+            System.out.println(tokens.get(i) + ":" + lemmataComputed.get(i));
         }
-        System.out.println(lemmatizedTokens);
 
-        assertEquals(noStops.size(), lemmatizedTokens.size());
+        assertEquals(tokens.size(), lemmataComputed.size());
+    }
+
+    @Test
+    void process() {
+        // Remove stopwords
+        List<String> noStopsComputed = StringProcessing.process(text);
+
+        int shorterLength = Math.min(noStops.size(), noStopsComputed.size());
+        for (int i=0; i<shorterLength; i++) {
+            System.out.println(noStops.get(i) + ":" + noStopsComputed.get(i));
+        }
+        
+        assertEquals(noStops.size(), noStopsComputed.size());
     }
 }

@@ -44,7 +44,7 @@ public class Index {
      * @return {@code Map} of URL to TfIdf score
      */
     public Map<String, Double> tfIdfQuery(String query) {
-        CountMap<String> queryTokens = StringProcessing.process(query);
+        CountMap<String> queryTokens = StringProcessing.getTokenCounts(query);
         Map<String, Double> urlToTfIdf = new HashMap<>();
         for (String token : queryTokens.keySet()) {
             reverseIndex.getPagesContaining(token).forEach((url, tfIdf) -> urlToTfIdf.merge(url, tfIdf, Double::sum));
@@ -53,7 +53,7 @@ public class Index {
     }
 
     public double cosineSimilarity(String url, String query) {
-        CountMap<String> queryTokens = StringProcessing.process(query);
+        CountMap<String> queryTokens = StringProcessing.getTokenCounts(query);
         NormalizedVectorMap queryVector = new NormalizedVectorMap(queryTokens.getMap());
         return queryVector.dotThisBased(this.forwardIndex.getVectorOf(url));
     }

@@ -11,8 +11,6 @@ import org.jsoup.nodes.Element;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import de.fernunihagen.dbis.anguillasearch.index.StringProcessing;
-
 
 /**
  * A Page instance holds all relevant raw information about a single web page.
@@ -129,14 +127,12 @@ public class Page {
     }
 
     /**
-     * Returns tokens of this page.
-     * This method is used to build the forward and reverse index.
+     * Returns title, headings and paragraphs of page, seperated by newlines.
      * 
-     * @return map of tokens to their frequency
+     * @return title, headings and paragraphs, concatenated and seperated by newlines.
      */
-    public CountMap<String> tokens() {
-        String fullString = (this.title + " " + this.headings + " " + this.paragraphs);
-        return StringProcessing.process(fullString);
+    public String rawText() {
+        return this.title + "\n" + this.headings + "\n" + this.paragraphs;
     }
 }
 
