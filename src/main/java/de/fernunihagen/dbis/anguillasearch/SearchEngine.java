@@ -1,11 +1,14 @@
 package de.fernunihagen.dbis.anguillasearch;
 
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
+
+import de.fernunihagen.dbis.anguillasearch.index.Index;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -14,8 +17,7 @@ import java.util.TreeSet;
  * An index consists of a Forward Index, a Reverse Index and Page Ranks.
  */
 public class SearchEngine {
-    ForwardIndex fi;
-    ReverseIndex ri;
+    Index index;
     PageRank pr;
     static final double COSINESIMILARITYWEIGHT = 1;
     static final double TFIDFWEIGHT = 0;
@@ -27,8 +29,7 @@ public class SearchEngine {
      * @param pages {@code Collection} of {@code Page}s for which to create index
      */
     public SearchEngine(Collection<Page> pages) {
-        this.fi = new ForwardIndex(pages);
-        this.ri = new ReverseIndex(fi);
+        this.index = new Index(pages);
         this.pr = new PageRank(pages, 0.85, Math.pow(10,-12), false);
     }
 
@@ -60,19 +61,12 @@ public class SearchEngine {
      * @return Search results sorted by score
      */
     public SearchResult search(String query, double cosineSimilarityWeight, double tfIdfWeight, double pageRankWeight) {
-        // Get URLs of pages containing at least one of the tokens and calculate TfIdf summed for all tokens
-        CountMap<String> queryTokens = StringProcessing.process(query);
-        ReverseIndex.UrlToTfIdfMap queryTokenResult = new ReverseIndex.UrlToTfIdfMap();
-        for (String token : queryTokens.keySet()) {
-            queryTokenResult.merge(ri.getPagesContaining(token));
-        }
-
-        // Calculate other metrics
-        NormalizedVectorMap normalizedQueryVector = new NormalizedVectorMap(queryTokens.getMap());
+        Map<String, Double> urlToTfIdf = index.tfIdfQuery(query);
         SearchResult results = new SearchResult();
-        for (String url : queryTokenResult.getUrls()) {
-            double tfIdf = queryTokenResult.getTfIdfOf(url);
-            double cosineSimilarity = normalizedQueryVector.dotThisBased(fi.getVectorOf(url));
+        for (Map.Entry<String, Double> entry : urlToTfIdf.entrySet()) {
+            String url = entry.getKey();
+            double tfIdf = entry.getValue();
+            double cosineSimilarity = index.cosineSimilarity(url, query);
             double pageRank = this.pr.getRankOf(url);
             double score = computeScore(cosineSimilarity, tfIdf, pageRank, cosineSimilarityWeight, tfIdfWeight, pageRankWeight);
             results.add(new SearchResult.SearchResultEntry(url, score, cosineSimilarity, tfIdf, pageRank));

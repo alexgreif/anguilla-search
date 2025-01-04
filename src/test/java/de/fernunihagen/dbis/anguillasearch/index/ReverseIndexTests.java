@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.index;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -12,6 +12,9 @@ import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import de.fernunihagen.dbis.anguillasearch.Page;
+import de.fernunihagen.dbis.anguillasearch.Utils;
 
 
 /**

@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.index;
 
 import java.util.Map;
 import java.util.Map.Entry;

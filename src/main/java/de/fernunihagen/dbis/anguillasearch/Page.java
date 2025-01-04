@@ -11,6 +11,8 @@ import org.jsoup.nodes.Element;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import de.fernunihagen.dbis.anguillasearch.index.StringProcessing;
+
 
 /**
  * A Page instance holds all relevant raw information about a single web page.

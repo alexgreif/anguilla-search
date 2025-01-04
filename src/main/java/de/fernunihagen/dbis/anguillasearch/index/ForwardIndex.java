@@ -1,8 +1,12 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.index;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.Map.Entry;
+
+import de.fernunihagen.dbis.anguillasearch.CountMap;
+import de.fernunihagen.dbis.anguillasearch.Page;
+
 import java.util.Collection;
 
 /**

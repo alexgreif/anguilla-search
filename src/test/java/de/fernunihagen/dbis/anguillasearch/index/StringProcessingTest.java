@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.index;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -19,7 +20,7 @@ class StringProcessingTest {
     static List<String> noStops;
 
     @BeforeAll
-    static void setUp() throws IOException {
+    static void setUp() {
         // Used AI to generate random text
         text = "Natural Language Processing (NLP), as a multidisciplinary domain,"
         + "amalgamates computational linguistics and statistical methodologies;"

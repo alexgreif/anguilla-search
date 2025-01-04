@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.index;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,6 +18,8 @@ import edu.stanford.nlp.ling.CoreLabel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.fernunihagen.dbis.anguillasearch.CountMap;
 
 public class StringProcessing {
 
