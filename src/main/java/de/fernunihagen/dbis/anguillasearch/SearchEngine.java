@@ -18,7 +18,7 @@ import java.util.TreeSet;
  */
 public class SearchEngine {
     Index index;
-    PageRank pr;
+    Map<String, Double> urlToPageRank;
     static final double COSINESIMILARITYWEIGHT = 1;
     static final double TFIDFWEIGHT = 0;
     static final double PAGERANKWEIGHT = 1;
@@ -30,7 +30,7 @@ public class SearchEngine {
      */
     public SearchEngine(Collection<Page> pages) {
         this.index = new Index(pages);
-        this.pr = new PageRank(pages, 0.85, Math.pow(10,-12), false);
+        this.urlToPageRank = PageRank.compute(pages, 0.85, Math.pow(10,-12));
     }
 
     /**
@@ -67,7 +67,7 @@ public class SearchEngine {
             String url = entry.getKey();
             double tfIdf = entry.getValue();
             double cosineSimilarity = index.cosineSimilarity(url, query);
-            double pageRank = this.pr.getRankOf(url);
+            double pageRank = this.urlToPageRank.get(url);
             double score = computeScore(cosineSimilarity, tfIdf, pageRank, cosineSimilarityWeight, tfIdfWeight, pageRankWeight);
             results.add(new SearchResult.SearchResultEntry(url, score, cosineSimilarity, tfIdf, pageRank));
         }

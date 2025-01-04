@@ -44,11 +44,11 @@ class PageRankTests {
             crawler.crawl();
             System.out.println(LocalDateTime.now() + " crawled");
             dampingFactor = 0.85;
-            PageRank pageRank = new PageRank(crawler.getPages(), dampingFactor, Math.pow(10, -10), Integer.MAX_VALUE, false);
+            Map<String, Double> urlToPageRank = PageRank.compute(crawler.getPages(), dampingFactor, Math.pow(10, -10));
             System.out.println(LocalDateTime.now() + " PageRanked");
 
             // Add the crawler and page rank instances to the map
-            pageRankForAllIntranets.add(pageRank.getMap());
+            pageRankForAllIntranets.add(urlToPageRank);
         }
     }
 
@@ -102,21 +102,13 @@ class PageRankTests {
 
     @Test
     void correctPageRankScores() throws IOException{
-        // Create a map with URLs and the correct page rank scores;
+        // Create a map with URLs and the correct page rank scores
         // These scores will be used to verify the correctness of the page rank algorithm
         Map<String, Double> correctPageRankScores = Map.of(
             "http://cheddar24.cheesy6", 0.0375,
             "http://brie24.cheesy6", 0.3326,
             "http://crumbly-cheddar.cheesy6", 0.3097,
             "http://nutty-cheddar24.cheesy6", 0.3202);
-        
-        JsonObject testJSON = Utils.parseJSONFile("intranet/cheesy6-54ae2b2e.json");
-        // Extract the seed URLs from the JSON file
-        String[] seedUrls = new Gson().fromJson(testJSON.get("Seed-URLs"), String[].class);
-        
-
-        // Add your code here to calculate the page rank
-
 
         // Verify that the page rank scores are correct
         for (Map.Entry<String, Double> entry : correctPageRankScores.entrySet()) {

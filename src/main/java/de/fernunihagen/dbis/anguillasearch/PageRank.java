@@ -5,125 +5,57 @@ import java.util.Map.Entry;
 import java.util.HashMap;
 import java.util.Collection;
 import java.util.Set;
-import java.util.HashSet;
 
+/**
+ * Implements the PageRank Algorithm
+ */
 public class PageRank {
-    private Map<String, Double> urlToRank;
-    private double dampingFactor;
-    private double rankSource;
-    private double epsilon;
-    private double maxIters;
-    private boolean verbose;
 
-    public PageRank(Collection<Page> pages, double dampingFactor, double epsilon, boolean verbose) {
-        this(pages, dampingFactor, epsilon, -1, verbose);
-    }
+    private PageRank() {}
 
-    public PageRank(Collection<Page> pages, double dampingFactor, double epsilon, int maxIters, boolean verbose) {
-        
-        // Create three needed data structures from page list
-        Set<String> urls = new HashSet<>();
-        Map<String, Set<String>> incomingLinks = new HashMap<>();
-        Map<String, Double> invNumOutLinks = new HashMap<>();
+    /**
+     * Computes PageRanks for a set of web pages.
+     * 
+     * @param pages the pages whose PageRanks are to be computed
+     * @param dampingFactor damping factor of the PageRank algorithm
+     * @param epsilon if the summed absolute differences between two iterations are smaller than epsilon, the algorithm will terminate
+     * @return {@code Map} from the pages URLs to their PageRanks
+     */
+    public static Map<String, Double> compute(Collection<Page> pages, double dampingFactor, double epsilon) {
+        // Set up the two data structures needed for computation
+        Map<String, Set<String>> urlToIncomingLinks = new HashMap<>();
+        Map<String, Double> urlToinvNumOutLinks = new HashMap<>();
         for (Page page : pages) {
-            incomingLinks.put(page.url, page.getIncomingLinks());
-            invNumOutLinks.put(page.url, 1. / page.nOutgoingLinks(true));
-            urls.add(page.url);
+            urlToIncomingLinks.put(page.url, page.getIncomingLinks());
+            urlToinvNumOutLinks.put(page.url, 1. / page.nOutgoingLinks(true));
         }
 
-        // Initialize instance variables
-        Double initialRank = 1. / urls.size();
-        this.urlToRank = new HashMap<>();
-        for (String url : urls) {
-            this.urlToRank.put(url, initialRank);
+        // Initialize ranks
+        Double initialRank = 1. / urlToIncomingLinks.size();
+        Map<String, Double> urlToRank = new HashMap<>();
+        for (String url : urlToIncomingLinks.keySet()) {
+            urlToRank.put(url, initialRank);
         }
-        this.dampingFactor = dampingFactor;
-        this.rankSource = (1 - dampingFactor) * initialRank;
-        this.epsilon = epsilon;
-        this.maxIters = maxIters;
-        this.verbose = verbose;
-        
-        // Compute PageRank
-        this.compute(incomingLinks, invNumOutLinks);
-    }
 
-    private void computeLimitedIters(Map<String, Set<String>> incomingLinks, Map<String, Double> invNumOutLinks) {
+        // Iterate until diffsum is smaller than epsilon
+        double rankSource = (1 - dampingFactor) * initialRank;
         double diffSum = 1;
-        int i = 0;
-        if (this.verbose) {
-            while (diffSum >= this.epsilon && i < this.maxIters) {
-                System.out.println("Iteration " + i);
-                System.out.println("Summed Differences = " + diffSum);
-                this.prettyPrint();
-                diffSum = this.nextIteration(incomingLinks, invNumOutLinks);
-                i++;
+        while (diffSum >= epsilon) {
+            Map<String, Double> newRanks = new HashMap<>();
+            diffSum = 0;
+            for (Entry<String, Set<String>> entry : urlToIncomingLinks.entrySet()) {
+                double simpleRank = 0.;
+                for (String link : entry.getValue()) {
+                    simpleRank += urlToRank.get(link) * urlToinvNumOutLinks.get(link);
+                }
+                double newRank = dampingFactor * simpleRank + rankSource;
+                newRanks.put(entry.getKey(), newRank);
+                double diff = newRank - urlToRank.get(entry.getKey());
+                diffSum += Math.abs(diff);
             }
-            System.out.println("Iteration " + i);
-            System.out.println("Summed Differences = " + diffSum);
-            this.prettyPrint();
-        } else {
-            while (diffSum >= this.epsilon && i < this.maxIters) {
-                diffSum = this.nextIteration(incomingLinks, invNumOutLinks);
-                i++;
-            }
+            urlToRank = newRanks;
         }
-    }
 
-    private void compute(Map<String, Set<String>> incomingLinks, Map<String, Double> invNumOutLinks) {
-        double diffSum = 1;
-        int i = 0;
-        if (this.verbose) {
-            while (diffSum >= this.epsilon) {
-                System.out.println("Iteration " + i);
-                System.out.println("Summed Differences = " + diffSum);
-                this.prettyPrint();
-                diffSum = this.nextIteration(incomingLinks, invNumOutLinks);
-                i++;
-            }
-            System.out.println("Iteration " + i);
-            System.out.println("Summed Differences = " + diffSum);
-            this.prettyPrint();
-        } else {
-            while (diffSum >= this.epsilon) {
-                diffSum = this.nextIteration(incomingLinks, invNumOutLinks);
-                i++;
-            }
-        }
-    }
-
-    private double nextIteration(Map<String, Set<String>> incomingLinks, Map<String, Double> invNumOutLinks) {
-        Map<String, Double> newRanks = new HashMap<>();
-        double diffSum = 0;
-        for (Entry<String, Set<String>> entry : incomingLinks.entrySet()) {
-            double simpleRank = 0.;
-            for (String link : entry.getValue()) {
-                simpleRank += this.urlToRank.get(link) * invNumOutLinks.get(link);
-            }
-            double newRank = this.dampingFactor * simpleRank + this.rankSource;
-            newRanks.put(entry.getKey(), newRank);
-            double diff = newRank - this.urlToRank.get(entry.getKey());
-            diffSum += Math.abs(diff);
-        }
-        this.urlToRank = newRanks;
-        return diffSum;
-    }
-
-    public Map<String, Double> getMap() {
-        return this.urlToRank;
-    }
-
-    public double getRankOf(String url) {
-        return this.urlToRank.get(url);
-    }
-
-    public void prettyPrint() {
-        for (Entry<String, Double> entry : this.urlToRank.entrySet()) {
-            System.out.println(entry.getKey() + ": " + entry.getValue());
-        }
-        System.out.println();
-    }
-
-    public String toString() {
-        return this.urlToRank.toString();
+        return urlToRank;
     }
 }
