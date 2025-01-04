@@ -33,6 +33,7 @@ public final class AnguillaSearch {
         System.setProperty("java.awt.headless", "true");
         LOGGER.info("Java awt GraphicsEnvironment headless: {}", java.awt.GraphicsEnvironment.isHeadless());
 
+        // Make Graph
         String[] seedUrls = {"http://gruyere24.cheesy4", "http://tangy-gruyere.cheesy4", "http://edam24.cheesy4"};
         Crawler crawler = new Crawler(seedUrls);
         crawler.crawl(16);
@@ -42,5 +43,16 @@ public final class AnguillaSearch {
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
         }
+
+        // Run Search Engine
+        SearchEngine eng;
+        try {
+            eng = new SearchEngine();
+        } catch (IOException e) {
+            System.out.println("Failed to start Search Engine");
+            LOGGER.error(e.getMessage());
+            return;
+        }
+        eng.run();
     }
 }

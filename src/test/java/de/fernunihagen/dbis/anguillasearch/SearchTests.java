@@ -26,8 +26,8 @@ class SearchTests {
         Index index = new Index(seedUrls);
 
         // Place your code here to execute the search
-        Index.SearchResult resultTfIdf = index.tfIdfSearch(String.join(", ", query));
-        Index.SearchResult resultCosine = index.vectorSearch(String.join(", ", query));
+        Index.SimpleSearchResult resultTfIdf = index.tfIdfSearch(String.join(", ", query));
+        Index.SimpleSearchResult resultCosine = index.vectorSearch(String.join(", ", query));
         List<String> foundUrlsTfIdf = resultTfIdf.getUrls(); 
         List<String> foundUrlsCosine = resultCosine.getUrls();
 

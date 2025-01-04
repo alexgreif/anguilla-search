@@ -13,8 +13,6 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import de.fernunihagen.dbis.anguillasearch.ReverseIndex.TfIdfMap;
-
 
 /**
  * Unit tests for the reverse index.
@@ -66,14 +64,11 @@ class ReverseIndexTests {
                 // Check if the reverse index contains the token
                 assertTrue(ri.containsToken(token));
 
-                // Get the map of pages for the token
-                TfIdfMap tfIdfMap = ri.getPagesContaining(token);
-        
                 // Check if the URL exists for that token
-                assertTrue(tfIdfMap.containsPage(url));
+                assertTrue(ri.tokenOnPage(token, url));
 
                 // Get the TF-IDF value for the URL from your reverse index
-                Double indexTfidf = tfIdfMap.getTfIdfOf(url);
+                Double indexTfidf = ri.getTfIdf(token, url);
                 // Check if the TF-IDF value is correct
                 assertTrue(Math.abs(tfidf - indexTfidf) < 0.0001);
 

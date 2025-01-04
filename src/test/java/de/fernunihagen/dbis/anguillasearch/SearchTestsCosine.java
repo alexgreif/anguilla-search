@@ -26,7 +26,7 @@ class SearchTestsTfIdf {
         Index index = new Index(seedUrls);
 
         // Place your code here to execute the search
-        Index.SearchResult result = index.tfIdfSearch(String.join(", ", query));
+        Index.SimpleSearchResult result = index.tfIdfSearch(String.join(", ", query));
         result.sort();
         List<String> foundUrls = result.getUrls(); 
 

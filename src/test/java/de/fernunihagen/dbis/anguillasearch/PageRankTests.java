@@ -132,11 +132,11 @@ class PageRankTests {
                     break;
                 }
             }
-            // Test fails because damping factor not yet implemented
+            // Test
             assertTrue(Math.abs(pageRankScore - correctPageRank) < 0.001);
 
             // Remove the following line after adding your code!
-            assertTrue(false);
+            
         }
     }
 }

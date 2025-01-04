@@ -12,36 +12,79 @@ import java.util.Collection;
 
 import java.io.IOException;
 
+/**
+ * Scrapes web pages based on seed URLs.
+ * A Crawler is instantiated using a collection or array of seed URLs and provides methods to 
+ */
 public class Crawler {
-    private List<String> seedUrls;
-    private Map<String, Page> pages;
+    private Collection<String> seedUrls;
+    private Map<String, Page> urlToPage;
     
+    /**
+     * Creates Crawler instanced based on {@code Array} of seed URLs.
+     * 
+     * @param seedUrls {@code Array} of seed URLs
+     */
     public Crawler(String[] seedUrls) {
-        this.setSeedUrls(seedUrls);
-    }
-
-    private void setSeedUrls(String[] seedUrls) {
         this.seedUrls = Arrays.asList(seedUrls);
     }
+  
+    /**
+     * Creates Crawler instanced based on {@code Collection} of seed URLs.
+     * 
+     * @param seedUrls {@code Collection} of seed URLs
+     */
+    public Crawler(Collection<String> seedUrls) {
+        this.seedUrls = seedUrls;
+    }
 
+    /**
+     * Crawls pages based on seed URLs given at instantiation.
+     */
     public void crawl() {
         this.findPages();
         this.setIncomingLinks();
     }
 
+    /**
+     * Crawls pages based on seedUrls until maxPages pages (including seed pages) have been found.
+     * If maxPages is smaller than the number of seed URLs, will scrape all seed URLs but nothing else.
+     * 
+     * @param maxPages maximum number of pages to be crawled (including seed pages)
+     */
     public void crawl(int maxPages) {
         this.findPages(maxPages);
         this.setIncomingLinks();
     }
 
+    /**
+     * Retrieve URLs of all crawled pages.
+     * This method is used to help create the Graph representation of links between pages.
+     * 
+     * @return {@code Set} of URLs of all crawled pages
+     */
     public Set<String> getUrls() {
-        return this.pages.keySet();
+        return this.urlToPage.keySet();
     }
 
+    /**
+     * Retrieve total number of pages crawled.
+     * This method is used for limiting the number of crawled pages, testing and providing information to the user.
+     * 
+     * @return number of pages crawled
+     */
     public int nPages() {
-        return this.pages.size();
+        return this.urlToPage.size();
     }
 
+    /**
+     * Retrieve total number of links between crawled pages.
+     * Can count distinct or total links.
+     * This method is only used for testing purposes.
+     * 
+     * @param distinct if true, multiple links from one page to another page (or itself) will only be counted once
+     * @return
+     */
     public int nLinks(boolean distinct) {
         int results = 0;
         for (Page page : this.getPages()) {
@@ -50,15 +93,13 @@ public class Crawler {
         return results;
     }
 
-    public Map<String, Set<String>> outgoingLinkMap() {
-        Map<String, Set<String>> outgoingLinks = new HashMap<>();
-        for (Page page : this.pages.values()) {
-            outgoingLinks.put(page.url, page.getOutgoingLinks());
-        }
-        return outgoingLinks;
-    }
-
-    public List<Link> getAllLinks() {
+    /**
+     * Retrieves all links that have been found in crawled pages.
+     * This includes links to pages that have not been crawled.
+     * 
+     * @return List of Links on crawled pages
+     */
+    public List<Link> getAllOutgoingLinks() {
         // Can include links to pages that are not in this.pages
         // For example when 
         List<Link> links = new ArrayList<>();
@@ -70,6 +111,13 @@ public class Crawler {
         return links;
     } 
 
+    /**
+     * Retrieves all links between crawled pages.
+     * Does not include links to pages that have not been crawled.
+     * This method is used for constructing the Graph representation of links between pages.
+     * 
+     * @return List of Links between crawled pages
+     */
     public List<Link> getLinksWithin() {
         List<Link> links = new ArrayList<>();
         for (Page target : this.getPages()) {
@@ -80,12 +128,21 @@ public class Crawler {
         return links;
     } 
 
+    /**
+     * Retrieves all crawled pages
+     * 
+     * @return {@code Collection} of crawled pages
+     */
     public Collection<Page> getPages() {
-        return this.pages.values();
+        return this.urlToPage.values();
     }
 
+    /**
+     * Does actual crawling.
+     * Finds pages and scrapes their contents. Starts crawling in this.seedUrls.
+     */
     private void findPages() {
-        this.pages = new HashMap<>();
+        this.urlToPage = new HashMap<>();
         Queue<String> Q = new LinkedList<>(this.seedUrls);
 
         while (!Q.isEmpty()) {
@@ -97,22 +154,28 @@ public class Crawler {
             } catch (IOException e) {
                 continue;
             }
-            pages.put(url, page);
+            urlToPage.put(url, page);
             
             // Append URLs from outgoing links to queue
             for (String link : page.getOutgoingLinks()) {
-                if (!pages.containsKey(link)) {
+                if (!urlToPage.containsKey(link)) {
                     Q.add(link);
                 }
             }   
         }
     }
 
+    /**
+     * Does actual crawling.
+     * Finds pages and scrapes their contents. Starts crawling in this.seedUrls.
+     * Stops crawling after max(len(seedUrls), maxPages) have been added to this.pages.
+     * Same as findPages() but stops after maxPages have been found.
+     * Repeats a lot of code for efficiency. Otherwise there would be two unnecessary comparisons for each site when using INFINITY.
+     * 
+     * @param maxPages crawling will be stopped after this number of pages have been crawled   
+     */
     private void findPages(int maxPages) {
-        // Same as findPages but stops after maxPages have been found.
-        // Repeats a lot of same code for efficiency
-        // Otherwise there would be two unnecessary comparisons for each site when using INFINITY
-        this.pages = new HashMap<>();
+        this.urlToPage = new HashMap<>();
         Queue<String> Q = new LinkedList<>(this.seedUrls);
 
         while (!Q.isEmpty()) {
@@ -124,29 +187,34 @@ public class Crawler {
             } catch (IOException e) {
                 continue;
             }
-            pages.put(url, page);
+            urlToPage.put(url, page);
             
             // Append URLs from outgoing links to queue if less than maxPages have been found so far
-            if (this.nPages() + Q.size() < maxPages) {
-                for (String link : page.getOutgoingLinks()) {
-                    if (!pages.containsKey(link) && this.nPages() + Q.size() < maxPages) {
+            for (String link : page.getOutgoingLinks()) {
+                if (this.nPages() + Q.size() >= maxPages) {
+                    break;
+                } else if (!urlToPage.containsKey(link)) {
                         Q.add(link);
                     }
-                }
             }
+            
         }
     }
 
     private void setIncomingLinks() {
-        for (Page page : this.pages.values()) {
+        for (Page page : this.urlToPage.values()) {
             for (String outLink : page.getOutgoingLinks()) {
-                if (this.pages.containsKey(outLink)) {
-                    this.pages.get(outLink).addIncomingLink(page.url);
+                if (this.urlToPage.containsKey(outLink)) {
+                    this.urlToPage.get(outLink).addIncomingLink(page.url);
                 }
             }
         }
     }
 
+    /**
+     * Link between two pages consisting of source and target.
+     * Used to create Graph representation of links between pages.
+     */
     public class Link {
         final String source;
         final String target;

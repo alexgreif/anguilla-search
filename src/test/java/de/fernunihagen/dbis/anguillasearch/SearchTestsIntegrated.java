@@ -26,8 +26,8 @@ class SearchTestsIntegrated {
         Index index = new Index(seedUrls);
 
         // Place your code here to execute the search
-        Index.SearchResult2 results = index.search(String.join(", ", query));
-        List<String> foundUrls = results.getUrls(); 
+        Index.SearchResult results = index.search(String.join(", ", query));
+        List<String> foundUrls = results.getUrls();
 
         // Print results
         System.out.println("Expected\n" + Arrays.asList(expectedURLs) + "\n");

@@ -14,17 +14,23 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.lang3.StringUtils;
-
+/**
+ * An index consists of a Forward Index, a Reverse Index and Page Ranks.
+ */
 public class Index {
     ForwardIndex fi;
     ReverseIndex ri;
     PageRank pr;
-    final static double cosineSimilarityWeight = 1;
-    final static double tfIdfWeight = 0;
-    final static double pageRankWeight = 1;
+    static final double cosineSimilarityWeight = 1;
+    static final double tfIdfWeight = 0;
+    static final double pageRankWeight = 1;
     
-
+    /**
+     * Constructs index from seed URLs.
+     * This constructor is used only in tests.
+     * 
+     * @param seedUrls {@code Array} of seed URLs to be used as a starting point for the index
+     */
     public Index(String[] seedUrls) {
         Crawler crawler = new Crawler(seedUrls);
         crawler.crawl();
@@ -33,36 +39,55 @@ public class Index {
         this.pr = new PageRank(crawler.getPages(), 0.85, Math.pow(10,-12), false);
     }
 
-    // Alternativ constructor for tests
+    /**
+     * Constructs index from Collection of pages.
+     * 
+     * @param pages {@code Collection} of {@code Page}s for which to create index
+     */
     public Index(Collection<Page> pages) {
         this.fi = new ForwardIndex(pages);
         this.ri = new ReverseIndex(fi);
         this.pr = new PageRank(pages, 0.85, Math.pow(10,-12), false);
     }
 
-    public SearchResult2 search(String query) {
-        // Calculate tfIdf and get urls of pages containing at least one of the tokens
+    /**
+     * Search web pages in index for a query.
+     * Combines Cosine Similarity, TfIdf and Page Rank for final score.
+     * 
+     * @param query the search query
+     * @return Search results sorted by score
+     */
+    public SearchResult search(String query) {
+        // Get URLs of pages containing at least one of the tokens and calculate TfIdf summed for all tokens
         CountMap<String> queryTokens = StringProcessing.process(query);
-        ReverseIndex.TfIdfMap queryTokenResult = new ReverseIndex.TfIdfMap();
+        ReverseIndex.UrlToTfIdfMap queryTokenResult = new ReverseIndex.UrlToTfIdfMap();
         for (String token : queryTokens.keySet()) {
             queryTokenResult.merge(ri.getPagesContaining(token));
         }
 
         // Calculate other metrics
         NormalizedVectorMap normalizedQueryVector = new NormalizedVectorMap(queryTokens.getMap());
-        SearchResult2 results = new SearchResult2();
+        SearchResult results = new SearchResult();
         for (String url : queryTokenResult.getUrls()) {
             double tfIdf = queryTokenResult.getTfIdfOf(url);
             double cosineSimilarity = normalizedQueryVector.dotThisBased(fi.getVectorOf(url));
             double pageRank = this.pr.getRankOf(url);
-            double score = score(cosineSimilarity, tfIdf, pageRank);
-            results.add(new SearchResult2.SearchResultEntry(url, score, cosineSimilarity, tfIdf, pageRank));
+            double score = computeScore(cosineSimilarity, tfIdf, pageRank);
+            results.add(new SearchResult.SearchResultEntry(url, score, cosineSimilarity, tfIdf, pageRank));
         }
 
         return results;
     }
 
-    private static double score(double cosineSimilarity, double tfIdf, double pageRank) {
+    /**
+     * Compute overall score as weighted average of Cosine Similarity, TfIdf and Page Rank
+     * 
+     * @param cosineSimilarity
+     * @param tfIdf
+     * @param pageRank
+     * @return overall score
+     */
+    private static double computeScore(double cosineSimilarity, double tfIdf, double pageRank) {
         double score = cosineSimilarity * cosineSimilarityWeight;
         score += tfIdf * tfIdfWeight;
         score += pageRank * pageRankWeight;
@@ -70,16 +95,31 @@ public class Index {
         return score;
     }
 
-    public SearchResult tfIdfSearch(String query) {
+    /**
+     * Search using only TfIdf.
+     * Used only for testing.
+     * 
+     * @param query the search query
+     * @return search results sorted descending by TfIdf
+     */
+    public SimpleSearchResult tfIdfSearch(String query) {
         CountMap<String> queryTokens = StringProcessing.process(query);
-        ReverseIndex.TfIdfMap queryTokenResult = new ReverseIndex.TfIdfMap();
+        ReverseIndex.UrlToTfIdfMap queryTokenResult = new ReverseIndex.UrlToTfIdfMap();
         for (String token : queryTokens.keySet()) {
             queryTokenResult.merge(ri.getPagesContaining(token));
         }
-        return new SearchResult(queryTokenResult);
+        return new SimpleSearchResult(queryTokenResult);
     }
 
-    public SearchResult vectorSearch(String query) {
+
+    /**
+     * Search using only Cosine Similarity.
+     * Used only for testing.
+     * 
+     * @param query the search query
+     * @return search results sorted descending by Cosine Similarity
+     */
+    public SimpleSearchResult vectorSearch(String query) {
         CountMap<String> queryTokens = StringProcessing.process(query);
         // System.out.println("Found following tokens and weights:");
         // for (Entry<String, Integer> entry : queryTokens.entrySet()) {
@@ -98,18 +138,22 @@ public class Index {
                 results.put(entry.getKey(), cosineSimilarity);
             }
         }
-        return new SearchResult(results);
+        return new SimpleSearchResult(results);
     }
 
-    public static class SearchResult {
+    /**
+     * Results of search using only one metric.
+     * Used only for testing.
+     */
+    public static class SimpleSearchResult {
         Map<String, Double> results;
 
-        public SearchResult(ReverseIndex.TfIdfMap tfIdfMap) {
+        public SimpleSearchResult(ReverseIndex.UrlToTfIdfMap tfIdfMap) {
             this.results = new LinkedHashMap<>(tfIdfMap.getMap());
             this.sort();
         }
 
-        public SearchResult(Map<String, Double> resultsMap) {
+        public SimpleSearchResult(Map<String, Double> resultsMap) {
             this.results = new LinkedHashMap<>(resultsMap);
             this.sort();
         }
@@ -139,10 +183,13 @@ public class Index {
         }
     }
 
-    public static class SearchResult2 {
+    /**
+     * Results of a search by all three metric Cosine Similarity, TfIdf and Page Rank.
+     */
+    public static class SearchResult {
         SortedSet<SearchResultEntry> results;
 
-        public SearchResult2() {
+        public SearchResult() {
             this.results = new TreeSet<>();
         }
 
@@ -163,14 +210,14 @@ public class Index {
         }
 
         public void prettyPrint() {
-            String urlFormat = "%1$-37s";
+            String urlFormat = "%1$-45s";
             System.out.println(String.format(urlFormat, "| URL") + " | " +
             "Score" + " | " +
             "Cosine Similarity" + " | " +
             "TfIdf" + " | " +
             "PageRank" + " | ");
-            System.out.println("-------------------------------------------" +
-            "-------------------------------------------");
+            System.out.println("-----------------------------------------------" +
+            "-----------------------------------------------");
             
             for (SearchResultEntry entry : this.results) {
                 System.out.println(String.format(urlFormat, "| " + entry.url) + " | " +
