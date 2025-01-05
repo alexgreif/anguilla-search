@@ -80,13 +80,13 @@ class ReverseIndexTests {
 
 
                 // Check if the reverse index contains the token
-                assertTrue(ri.containsToken(token));
+                assertTrue(ri.tokens().contains(token));
 
                 // Check if the URL exists for that token
-                assertTrue(ri.tokenOnPage(token, url));
+                assertTrue(ri.getUrlsContaining(token).contains(url));
 
                 // Get the TF-IDF value for the URL from your reverse index
-                Double indexTfidf = ri.getTfIdf(token, url);
+                Double indexTfidf = ri.getTfIdfsFor(token).get(url);
                 // Check if the TF-IDF value is correct
                 assertTrue(Math.abs(tfidf - indexTfidf) < 0.0001);
 

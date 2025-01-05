@@ -6,11 +6,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Collection;
 
 import de.fernunihagen.dbis.anguillasearch.Page;
 import de.fernunihagen.dbis.anguillasearch.Utils;
-
-import java.util.Collection;
 
 /**
  * A Forward Index organizes tokens by page.
@@ -63,7 +62,7 @@ class ForwardIndex {
      * @param url url of the page whose tokens are to be retrieved
      * @return {@code NormalizedVectorMap} of tokens and their normalized numbers of occurence
      */
-    NormalizedVectorMap getVectorOf(String url) {
+    NormalizedVector getVectorOf(String url) {
         return urlToFiEntry.get(url).normalizedCountVector;
     }
 
@@ -109,11 +108,11 @@ class ForwardIndex {
      */
     private class ForwardIndexEntry {
         private final Map<String, Integer> tokenToCount;
-        private final NormalizedVectorMap normalizedCountVector;
+        private final NormalizedVector normalizedCountVector;
 
         private ForwardIndexEntry(Page page) {
             this.tokenToCount = StringProcessing.getTokenCounts(page.rawText());
-            this.normalizedCountVector = new NormalizedVectorMap(this.tokenToCount);
+            this.normalizedCountVector = new NormalizedVector(this.tokenToCount);
         }
     }
 }

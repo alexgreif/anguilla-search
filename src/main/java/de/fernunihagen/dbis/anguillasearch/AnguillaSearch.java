@@ -78,8 +78,7 @@ public final class AnguillaSearch {
                 break;
             }
             System.out.println();
-            SearchEngine.SearchResult searchResult = eng.search(query);
-            searchResult.prettyPrint();
+            eng.search(query, true);
         }
     }
 

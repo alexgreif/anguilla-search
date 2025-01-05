@@ -10,10 +10,20 @@ import java.util.Map.Entry;
 
 import de.fernunihagen.dbis.anguillasearch.Page;
 
+/**
+ * Index a Collection of web pages.
+ * Provides methods to search these pages for a query string and
+ * assess the match between a page and the search query.
+ */
 public class Index {
-    ForwardIndex forwardIndex;
-    ReverseIndex reverseIndex;
+    private ForwardIndex forwardIndex;
+    private ReverseIndex reverseIndex;
 
+    /**
+     * Creates an index for a collection of web pages.
+     * 
+     * @param pages the {@code Collection} of web pages to be indexed
+     */
     public Index(Collection<Page> pages) {
         forwardIndex = new ForwardIndex(pages);
         reverseIndex = new ReverseIndex(forwardIndex);
@@ -46,14 +56,21 @@ public class Index {
         Map<String, Integer> queryTokens = StringProcessing.getTokenCounts(query);
         Map<String, Double> urlToTfIdf = new HashMap<>();
         for (String token : queryTokens.keySet()) {
-            reverseIndex.getPagesContaining(token).forEach((url, tfIdf) -> urlToTfIdf.merge(url, tfIdf, Double::sum));
+            reverseIndex.getTfIdfsFor(token).forEach((url, tfIdf) -> urlToTfIdf.merge(url, tfIdf, Double::sum));
         }
         return urlToTfIdf;
     }
 
+    /**
+     * Computes the Cosine Similarity between a web page and a search query.
+     * 
+     * @param url the URL of the web page to be compared
+     * @param query the search query
+     * @return Cosine Similarity between page and query
+     */
     public double cosineSimilarity(String url, String query) {
         Map<String, Integer> queryTokens = StringProcessing.getTokenCounts(query);
-        NormalizedVectorMap queryVector = new NormalizedVectorMap(queryTokens);
+        NormalizedVector queryVector = new NormalizedVector(queryTokens);
         return queryVector.dotThisBased(this.forwardIndex.getVectorOf(url));
     }
 }

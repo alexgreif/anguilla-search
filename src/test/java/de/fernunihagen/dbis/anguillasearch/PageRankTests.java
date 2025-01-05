@@ -44,11 +44,20 @@ class PageRankTests {
             crawler.crawl();
             System.out.println(LocalDateTime.now() + " crawled");
             dampingFactor = 0.85;
-            Map<String, Double> urlToPageRank = PageRank.compute(crawler.getPages(), dampingFactor, Math.pow(10, -10));
+            double epsilon = Math.pow(10, -10);
+            int maxIters = (int) Math.pow(10, 6);
+            Map<String, Double> urlToPageRank = PageRank.compute(
+                crawler.getPages(), dampingFactor, epsilon, maxIters, false
+                ); // Verbose
             System.out.println(LocalDateTime.now() + " PageRanked");
 
             // Add the crawler and page rank instances to the map
             pageRankForAllIntranets.add(urlToPageRank);
+
+            // Verbose output Net 6 with simple PageRank for A4.3
+            if (testJSON.get("Net-Name").getAsString().equals("54ae2b2e")) {
+                PageRank.compute(crawler.getPages(), 1, epsilon, 30, true);
+            }
         }
     }
 

@@ -5,18 +5,18 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Collection;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 
 import de.fernunihagen.dbis.anguillasearch.index.Index;
 
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * An index consists of a Forward Index, a Reverse Index and Page Ranks.
  */
-public class SearchEngine {
+class SearchEngine {
     Index index;
     Map<String, Double> urlToPageRank;
     static final double COSINESIMILARITYWEIGHT = 1;
@@ -30,13 +30,13 @@ public class SearchEngine {
      */
     public SearchEngine(Collection<Page> pages) {
         this.index = new Index(pages);
-        this.urlToPageRank = PageRank.compute(pages, 0.85, Math.pow(10,-12));
+        this.urlToPageRank = PageRank.compute(pages, 0.85, Math.pow(10,-12), (int) Math.pow(10,6),false);
     }
 
     /**
      * Starts search engine
      */
-    public void run() {
+    private void run(Boolean verbose) {
         System.out.println("You can start your search now...");
         System.out.println();
         Scanner scanner = new Scanner(System.in);
@@ -46,7 +46,7 @@ public class SearchEngine {
             if (query.equals("exit")) {
                 return;
             }
-            this.search(query);
+            this.search(query, verbose);
         }
     }
 
@@ -60,7 +60,7 @@ public class SearchEngine {
      * @param pageRankWeight
      * @return Search results sorted by score
      */
-    public SearchResult search(String query, double cosineSimilarityWeight, double tfIdfWeight, double pageRankWeight) {
+    public SearchResult search(String query, double cosineSimilarityWeight, double tfIdfWeight, double pageRankWeight, Boolean verbose) {
         Map<String, Double> urlToTfIdf = index.tfIdfQuery(query);
         SearchResult results = new SearchResult();
         for (Map.Entry<String, Double> entry : urlToTfIdf.entrySet()) {
@@ -72,6 +72,9 @@ public class SearchEngine {
             results.add(new SearchResult.SearchResultEntry(url, score, cosineSimilarity, tfIdf, pageRank));
         }
 
+        if (verbose) {
+            results.prettyPrint();
+        }
         return results;
     }
 
@@ -83,8 +86,8 @@ public class SearchEngine {
      * @param query the search query
      * @return Search results sorted by score
      */
-    public SearchResult search(String query) {
-        return search(query, COSINESIMILARITYWEIGHT, TFIDFWEIGHT, PAGERANKWEIGHT);
+    public SearchResult search(String query, Boolean verbose) {
+        return search(query, COSINESIMILARITYWEIGHT, TFIDFWEIGHT, PAGERANKWEIGHT, verbose);
     }
 
     /**
@@ -124,18 +127,18 @@ public class SearchEngine {
     /**
      * Results of a search by all three metrics Cosine Similarity, TfIdf and Page Rank.
      */
-    public static class SearchResult {
+    private static class SearchResult {
         SortedSet<SearchResultEntry> results;
 
-        public SearchResult() {
+        private SearchResult() {
             this.results = new TreeSet<>();
         }
 
-        public void add(SearchResultEntry entry) {
+        private void add(SearchResultEntry entry) {
             this.results.add(entry);
         }
 
-        public List<String> getUrls() {
+        private List<String> getUrls() {
             List<String> urls = new ArrayList<>();
             for (SearchResultEntry entry : this.results) {
                 urls.add(entry.url);
@@ -147,7 +150,7 @@ public class SearchEngine {
             return this.results.toString();
         }
 
-        public void prettyPrint() {
+        private void prettyPrint() {
             StringBuilder stringBuilder = new StringBuilder();
             for (int i=0; i<94; i++) {
                 stringBuilder.append("-");
@@ -173,14 +176,14 @@ public class SearchEngine {
             System.out.println();
         }
 
-        static class SearchResultEntry implements Comparable<SearchResultEntry> {
+        private static class SearchResultEntry implements Comparable<SearchResultEntry> {
             String url;
             Double score;
             Double cosineSimilarity;
             Double tfIdf;
             Double pageRank;
 
-            SearchResultEntry(String url, Double score, Double cosineSimilarity, Double tfIdf, Double pageRank) {
+            private SearchResultEntry(String url, Double score, Double cosineSimilarity, Double tfIdf, Double pageRank) {
                 this.url = url;
                 this.score = score;
                 this.cosineSimilarity = cosineSimilarity;

@@ -1,31 +1,22 @@
 package de.fernunihagen.dbis.anguillasearch;
 
-import java.io.IOException;
-
 import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.List;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 
 /**
- * A Page instance holds all relevant raw information about a single web page.
+ * Holds method for constructing and manipulating Page Objects.
+ * A Page Object holds all relevant raw information about a single web page.
  */
 public class Page {
     /**
      * The web page's URL
      */
     public final String url; // not private to avoid overhead of function call when accessing url (frequent operation during crawling)
-    private final String title;
-    private final String headings;
-    private final String paragraphs;
+    private String title;
+    private String headings;
+    private String paragraphs;
     private Map<String, Integer> incomingLinks;
     private Map<String, Integer> outgoingLinks;
 
@@ -61,43 +52,6 @@ public class Page {
     }
 
     /**
-     * Returns URLs of web pages that link to this Page with the number of those links.
-     * 
-     * @return {@code Map} from URL to count of links
-     */
-    public Map<String, Integer> getIncomingLinksWithCounts() {
-        return this.incomingLinks;
-    }
-
-    /**
-     * Returns URLs of web pages that link to this Page.
-     * This method is used for computing PageRank.
-     * 
-     * @return {@code Set} of URLs of web pages that link to this page
-     */
-    public Set<String> getIncomingLinks() {
-        return this.incomingLinks.keySet();
-    }
-
-    /**
-     * Returns URLs of web pages that this Page links to with the number of those links.
-     * 
-     * @return {@code Map} from URL to count of links
-     */
-    public Map<String, Integer> getOutgoingLinksWithCounts() {
-        return this.outgoingLinks;
-    }
-
-    /**
-     * Return URLs of web pages that this Page links to.
-     * 
-     * @return {@code Set} of URLs of web pages that this Page links to
-     */
-    public Set<String> getOutgoingLinks() {
-        return this.outgoingLinks.keySet();
-    }
-
-    /**
      * Returns number of incoming links.
      * Can either return number of distinct or number of total incoming links.
      * If no page contains more than one link to this Page, both are identical.
@@ -130,6 +84,70 @@ public class Page {
      */
     public String rawText() {
         return this.title + "\n" + this.headings + "\n" + this.paragraphs;
+    }
+
+    /**
+     * Returns URLs of web pages that link to this Page.
+     * This method is used for computing PageRank.
+     * 
+     * @return {@code Set} of URLs of web pages that link to this page
+     */
+    public Set<String> incomingLinksSet() {
+        return this.incomingLinks.keySet();
+    }
+
+    /**
+     * Return URLs of web pages that this Page links to.
+     * 
+     * @return {@code Set} of URLs of web pages that this Page links to
+     */
+    public Set<String> outgoingLinksSet() {
+        return this.outgoingLinks.keySet();
+    }
+
+    /**
+     * Returns URLs of web pages that link to this Page with the number of those links.
+     * 
+     * @return {@code Map} from URL to count of links
+     */
+    public Map<String, Integer> getIncomingLinks() {
+        return this.incomingLinks;
+    }
+
+    /**
+     * Returns URLs of web pages that this Page links to with the number of those links.
+     * 
+     * @return {@code Map} from URL to count of links
+     */
+    public Map<String, Integer> getOutgoingLinks() {
+        return this.outgoingLinks;
+    }
+
+    /**
+     * Retrieves the web page's title.
+     * 
+     * @return the web page's title
+     */
+    public String getTitle() {
+        return this.title;
+    }
+
+    /**
+     * Retrieves the web page's headings.
+     * 
+     * @return the web page's headings
+     */
+    public String getHeadings() {
+        return this.headings;
+    }
+
+    /**
+     * Retrieves the web page's paragraphs.
+     * 
+     * @return the web page's paragraphs
+     */
+    public String getParagraphs() {
+        return this.paragraphs;
     }
 }
 
