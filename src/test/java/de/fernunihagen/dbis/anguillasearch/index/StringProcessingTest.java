@@ -78,7 +78,7 @@ class StringProcessingTest {
     @Test
     void process() {
         // Remove stopwords
-        List<String> noStopsComputed = StringProcessing.process(text);
+        List<String> noStopsComputed = StringProcessing.getTokens(text);
 
         int shorterLength = Math.min(noStops.size(), noStopsComputed.size());
         for (int i=0; i<shorterLength; i++) {

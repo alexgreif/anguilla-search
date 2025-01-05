@@ -7,8 +7,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.pipeline.Annotation;
@@ -18,25 +20,36 @@ import edu.stanford.nlp.ling.CoreLabel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.fernunihagen.dbis.anguillasearch.CountMap;
-
-public class StringProcessing {
-
+/**
+ * Contains static methods to preprocess strings for indexing and searching.
+ * Preprocessing involves tokenization, lemmatization, setting all characters to lowercase and removal of stopwords.
+ * This preprocessing is applied to search queries and web pages' text contents.
+ */
+class StringProcessing {
     private static final Logger LOGGER = LoggerFactory.getLogger(StringProcessing.class);
 
     private StringProcessing() {}
 
-    public static CountMap<String> getTokenCounts(String text) {
-        List<String> tokens = process(text);
-        
-        CountMap<String> tokenToCount = new CountMap<>();
-        for (String tkn : tokens) {
-            tokenToCount.add(tkn);
-        }
-        return tokenToCount;
+    /**
+     * Extracts tokens from a string and maps them to their number of occurence.
+     * This method is used for search queries and page content.
+     * 
+     * @param text {@code String} to search for tokens
+     * @return {@code Map} of tokens to their number of occurence
+     */
+    static Map<String, Integer> getTokenCounts(String text) {
+        return getTokens(text).stream().collect(Collectors.groupingBy(e -> e, Collectors.reducing(0, e -> 1, Integer::sum)));
     }
 
-    public static List<String> process(String text) {
+    /**
+     * Extracts tokens from a string.
+     * Returns a list of all tokens in order of appearance in string, including duplicates.
+     * This method does most of the work of the getTokenCounts method.
+     * 
+     * @param text {@code String} to search for tokens
+     * @return {@code List} of tokens
+     */
+    static List<String> getTokens(String text) {
         // Lemmatize
         List<String> tokens = lemmatize(text);
 
@@ -52,29 +65,14 @@ public class StringProcessing {
         return tokens;
     }
 
-    public static Set<String> loadStopwords() throws IOException{
-        Set<String> stopwords = new HashSet<>();
-        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-        InputStream is = classloader.getResourceAsStream("stopwords.txt");
-        try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-            for(String line; (line = br.readLine()) != null; ) {
-                if (!line.isEmpty()) {
-                    stopwords.add(line);
-                }
-            }
-        }
-        return stopwords;
-    }
-
     /**
      * Lemmatizes a String.
-     * Returns a {@code List} of all lemmata that contain letters.
      * Only returns lemmata that contain letters.
      * 
      * @param text {@code String} to be lemmatized
      * @return {@code List} of lemmata
      */
-    public static List<String> lemmatize(String text) {
+    static List<String> lemmatize(String text) {
         // Prepare pipeline
         Properties props = new Properties();
         props.setProperty("annotators","tokenize,ssplit,pos,lemma");
@@ -96,4 +94,23 @@ public class StringProcessing {
         return lemmata;
     }
 
+    /**
+     * Loads file containing stop words.
+     * 
+     * @return {@code Set} of stop words
+     * @throws IOException
+     */
+    private static Set<String> loadStopwords() throws IOException{
+        Set<String> stopwords = new HashSet<>();
+        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+        InputStream is = classloader.getResourceAsStream("stopwords.txt");
+        try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+            for(String line; (line = br.readLine()) != null; ) {
+                if (!line.isEmpty()) {
+                    stopwords.add(line);
+                }
+            }
+        }
+        return stopwords;
+    }
 }

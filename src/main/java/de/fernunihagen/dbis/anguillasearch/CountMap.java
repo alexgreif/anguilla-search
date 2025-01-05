@@ -2,12 +2,13 @@ package de.fernunihagen.dbis.anguillasearch;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Collection;
 import java.util.Set;
 import java.util.Map.Entry;
 
 /**
  * Maps a key to a count. Adding an element will increase it's count by one.
- * This class is used by several other classes, for example for counting links or tokens.
+ * This class is used by several other classes for counting links or tokens.
  */
 public class CountMap<T> {
     private Map<T, Integer> map;
@@ -16,9 +17,19 @@ public class CountMap<T> {
     /**
      * Intantiates an empty CountMap.
      */
-    public CountMap() {
+    CountMap() {
         this.map = new HashMap<>();
         this.sum = 0;
+    }
+
+    /**
+     * Intantiates a CountMap for a given Collection.
+     */
+    public CountMap(Collection<T> elems) {
+        this();
+        for (T elem : elems) {
+            this.add(elem);
+        }
     }
 
     /**

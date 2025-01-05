@@ -6,8 +6,6 @@ import java.util.Set;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import de.fernunihagen.dbis.anguillasearch.CountMap;
-
 public class ReverseIndex {
     private Map<String, Map<String, Double>> tokenToUrlToTfIdf;
 
@@ -21,11 +19,11 @@ public class ReverseIndex {
         int nPages = forwardIndex.nPages();
 
         // Build initial map with count instead of TfIdf
-        for (Entry<String, ForwardIndex.ForwardIndexEntry> urlForwardIndexEntry : forwardIndex.entrySet()) {
+        for (Entry<String, Map<String, Integer>> urlForwardIndexEntry : forwardIndex.urlToTokenToCountEntrySet()) {
             String url = urlForwardIndexEntry.getKey();
-            CountMap<String> tkns = urlForwardIndexEntry.getValue().tokenToCount;
-            for (Entry<String, Integer> tkn : tkns.entrySet()) {
-                this.add(tkn.getKey(), url, tkn.getValue());
+            Map<String, Integer> tokenToCount = urlForwardIndexEntry.getValue();
+            for (Entry<String, Integer> tokenCountEntry : tokenToCount.entrySet()) {
+                this.add(tokenCountEntry.getKey(), url, tokenCountEntry.getValue());
             }
         }
 

@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Collections;
 import java.util.Map.Entry;
 
-import de.fernunihagen.dbis.anguillasearch.CountMap;
 import de.fernunihagen.dbis.anguillasearch.Page;
 
 public class Index {
@@ -44,7 +43,7 @@ public class Index {
      * @return {@code Map} of URL to TfIdf score
      */
     public Map<String, Double> tfIdfQuery(String query) {
-        CountMap<String> queryTokens = StringProcessing.getTokenCounts(query);
+        Map<String, Integer> queryTokens = StringProcessing.getTokenCounts(query);
         Map<String, Double> urlToTfIdf = new HashMap<>();
         for (String token : queryTokens.keySet()) {
             reverseIndex.getPagesContaining(token).forEach((url, tfIdf) -> urlToTfIdf.merge(url, tfIdf, Double::sum));
@@ -53,8 +52,8 @@ public class Index {
     }
 
     public double cosineSimilarity(String url, String query) {
-        CountMap<String> queryTokens = StringProcessing.getTokenCounts(query);
-        NormalizedVectorMap queryVector = new NormalizedVectorMap(queryTokens.getMap());
+        Map<String, Integer> queryTokens = StringProcessing.getTokenCounts(query);
+        NormalizedVectorMap queryVector = new NormalizedVectorMap(queryTokens);
         return queryVector.dotThisBased(this.forwardIndex.getVectorOf(url));
     }
 }
