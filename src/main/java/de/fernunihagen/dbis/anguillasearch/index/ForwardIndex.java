@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import de.fernunihagen.dbis.anguillasearch.Page;
+import de.fernunihagen.dbis.anguillasearch.Utils;
 
 import java.util.Collection;
 
@@ -51,7 +52,7 @@ class ForwardIndex {
      * @return distinct or total number of tokens of given web page
      */
     int nTokens(String url, boolean distinct) {
-        return distinct ? this.getTokensOf(url).size() : this.getTokensOf(url).values().stream().reduce(0, Integer::sum);
+        return Utils.nElems(this.getTokensOf(url), distinct);
     }
 
     /**

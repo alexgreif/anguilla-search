@@ -10,8 +10,14 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.Optional;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 // This is a utility class that provides some helper methods for the tests
 public class Utils {
+    
+    private Utils() {}
+
     // This method parses a JSON file and returns the parsed object
     public static JsonObject parseJSONFile(String filename) throws IOException {
         Path path = Paths.get(filename);
@@ -33,5 +39,39 @@ public class Utils {
             jsonObjects.add(parseJSONFile(file.getAbsolutePath()));
         }
         return jsonObjects;
+    }
+
+    /**
+     * Counts the occurence of all elements in a {@code List}.
+     * Use cases:
+     *  1. In StringProcessing class to count the occurence of tokens on a web page or in a query text.
+     *  2. In Page class to count occurence of links on or to a web page.
+     * 
+     * @param <T> type of {@code List} elements
+     * @param list {@code List} of elements to be counted
+     * @return {@code Map} from elements to counts
+     */
+    public static <T> Map<T, Integer> listToCounts(List<T> list) {
+        return list.stream().collect(Collectors.groupingBy(e -> e, Collectors.reducing(0, e -> 1, Integer::sum)));
+    }
+
+    /**
+     * Counts distinct keys or sums values of a {@code Map} from any type to {@code Integer}.
+     * 
+     * @param <T>
+     * @param map
+     * @param distinct
+     * @return
+     */
+    public static <T> int nElems(Map<T, Integer> map, boolean distinct) {
+        if (distinct) {
+            return map.size();
+        } else {
+            int sum = 0;
+            for (int count : map.values()) {
+                sum += count;
+            }
+            return sum;
+        }
     }
 }

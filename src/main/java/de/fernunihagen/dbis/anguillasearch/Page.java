@@ -3,6 +3,9 @@ package de.fernunihagen.dbis.anguillasearch;
 import java.io.IOException;
 
 import java.util.Set;
+import java.util.Map;
+import java.util.List;
+import java.util.HashMap;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,8 +26,8 @@ public class Page {
     private final String title;
     private final String headings;
     private final String paragraphs;
-    private CountMap<String> incomingLinks;
-    private CountMap<String> outgoingLinks;
+    private Map<String, Integer> incomingLinks;
+    private Map<String, Integer> outgoingLinks;
     
     /**
      * A constructor that scrapes the required contents from a given URL.
@@ -41,11 +44,11 @@ public class Page {
         this.title = doc.title();
         this.headings = doc.select("h1, h2, h3, h4, h5, h6").text();
         this.paragraphs = doc.select("p").text();
-        this.incomingLinks = new CountMap<>();
-        this.outgoingLinks = new CountMap<>();
+        this.incomingLinks = new HashMap<>();
+        this.outgoingLinks = new HashMap<>();
 
         for (Element link : doc.select("a[href]")) {
-            this.outgoingLinks.add(link.attr("abs:href"));
+            this.outgoingLinks.merge(link.attr("abs:href"), 1, Integer::sum);
         }
     }
 
@@ -60,14 +63,14 @@ public class Page {
         this.title = jsonObject.get("title").getAsString();
         this.headings = jsonObject.get("headings").getAsString();
         this.paragraphs = jsonObject.get("paragraphs").getAsString();
-        this.incomingLinks = new CountMap<>();
-        this.outgoingLinks = new CountMap<>();
+        this.incomingLinks = new HashMap<>();
+        this.outgoingLinks = new HashMap<>();
 
-        for (JsonElement link : jsonObject.get("outgoingLinks").getAsJsonArray()) {
-            this.outgoingLinks.add(link.getAsString());
-        }
         for (JsonElement link : jsonObject.get("incomingLinks").getAsJsonArray()) {
-            this.incomingLinks.add(link.getAsString());
+            this.incomingLinks.merge(link.getAsString(), 1, Integer::sum);
+        }
+        for (JsonElement link : jsonObject.get("outgoingLinks").getAsJsonArray()) {
+            this.outgoingLinks.merge(link.getAsString(), 1, Integer::sum);
         }
     }
 
@@ -78,7 +81,7 @@ public class Page {
      * @param url URL of web page that links to web page of this Page instance
      */
     public void addIncomingLink(String url) {
-        incomingLinks.add(url);
+        this.incomingLinks.merge(url, 1, Integer::sum);
     }
 
     /**
@@ -110,7 +113,7 @@ public class Page {
      * @return number of distinct or total incoming links
      */
     public int nIncomingLinks(boolean distinct) {
-        return distinct ? this.incomingLinks.nDistinct() : this.incomingLinks.totalCount();
+        return Utils.nElems(this.incomingLinks, distinct);
     }
 
     /**
@@ -123,7 +126,7 @@ public class Page {
      * @return number of distinct or total outgoing links
      */
     public int nOutgoingLinks(boolean distinct) {
-        return distinct ? this.outgoingLinks.nDistinct() : this.outgoingLinks.totalCount();
+        return Utils.nElems(this.outgoingLinks, distinct);
     }
 
     /**
