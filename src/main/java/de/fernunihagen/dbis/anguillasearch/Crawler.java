@@ -8,6 +8,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+
 import java.util.Collection;
 
 import java.io.IOException;
@@ -39,7 +44,7 @@ public class Crawler {
     }
 
     /**
-     * Crawls pages based on seed URLs given at instantiation.
+     * Crawls pages based on seed URLs.
      */
     public void crawl() {
         this.findPages();
@@ -75,22 +80,6 @@ public class Crawler {
      */
     public int nPages() {
         return this.urlToPage.size();
-    }
-
-    /**
-     * Retrieve total number of links between crawled pages.
-     * Can count distinct or total links.
-     * This method is only used for testing purposes.
-     * 
-     * @param distinct if true, multiple links from one page to another page (or itself) will only be counted once
-     * @return
-     */
-    public int nLinks(boolean distinct) {
-        int results = 0;
-        for (Page page : this.getPages()) {
-            results += page.nIncomingLinks(distinct);
-        }
-        return results;
     }
 
     /**
@@ -143,23 +132,24 @@ public class Crawler {
      */
     private void findPages() {
         this.urlToPage = new HashMap<>();
-        Queue<String> Q = new LinkedList<>(this.seedUrls);
+        Queue<String> queue = new LinkedList<>(this.seedUrls);
 
-        while (!Q.isEmpty()) {
-            // Dequeue first URL, scrape page and add to this.pages
-            String url = Q.remove();
+        while (!queue.isEmpty()) {
+            // Dequeue first URL, scrape and save Page Object in URL to Page map
+            String url = queue.remove();
             Page page;
             try {
-                page = new Page(url);
+                page = parsePage(url);
             } catch (IOException e) {
+                System.out.println("Could not parse " + url);
                 continue;
             }
             urlToPage.put(url, page);
-            
+
             // Append URLs from outgoing links to queue
             for (String link : page.getOutgoingLinks()) {
                 if (!urlToPage.containsKey(link)) {
-                    Q.add(link);
+                    queue.add(link);
                 }
             }   
         }
@@ -176,14 +166,14 @@ public class Crawler {
      */
     private void findPages(int maxPages) {
         this.urlToPage = new HashMap<>();
-        Queue<String> Q = new LinkedList<>(this.seedUrls);
+        Queue<String> queue = new LinkedList<>(this.seedUrls);
 
-        while (!Q.isEmpty()) {
+        while (!queue.isEmpty()) {
             // Dequeue first URL, scrape page and add to this.pages
-            String url = Q.remove();
+            String url = queue.remove();
             Page page;
             try {
-                page = new Page(url);
+                page = parsePage(url);
             } catch (IOException e) {
                 continue;
             }
@@ -191,14 +181,34 @@ public class Crawler {
             
             // Append URLs from outgoing links to queue if less than maxPages have been found so far
             for (String link : page.getOutgoingLinks()) {
-                if (this.nPages() + Q.size() >= maxPages) {
+                if (this.nPages() + queue.size() >= maxPages) {
                     break;
                 } else if (!urlToPage.containsKey(link)) {
-                        Q.add(link);
+                        queue.add(link);
                     }
             }
             
         }
+    }
+
+    /**
+     * Parses a web pages contents given a URL
+     * 
+     * @param url url of page to be parsed
+     * @return {@code Page} representing the web page
+     * @throws IOException if no page can be found under url
+     */
+    private static Page parsePage(String url) throws IOException {
+        Document doc;
+        doc = Jsoup.connect(url).get();
+        String title = doc.title();
+        String headings = doc.select("h1, h2, h3, h4, h5, h6").text();
+        String paragraphs = doc.select("p").text();
+        Map<String, Integer> outgoingLinks = new HashMap<>();
+        for (Element link : doc.select("a[href]")) {
+            outgoingLinks.merge(link.attr("abs:href"), 1, Integer::sum);
+        }
+        return new Page(url, title, headings, paragraphs, outgoingLinks);
     }
 
     private void setIncomingLinks() {

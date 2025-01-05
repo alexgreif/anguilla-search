@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -36,8 +38,21 @@ class ReverseIndexTests {
 
         // Add your code here to create your reverse index
         pages = new ArrayList<>();
-        for (JsonObject page : testPages) {
-            pages.add(new Page(page));
+        for (JsonObject pageJsonObject : testPages) {
+            String url = pageJsonObject.get("url").getAsString();
+            String title = pageJsonObject.get("title").getAsString();
+            String headings = pageJsonObject.get("headings").getAsString();
+            String paragraphs = pageJsonObject.get("paragraphs").getAsString();
+            Map<String, Integer> outgoingLinks = new HashMap<>();
+            for (JsonElement link : pageJsonObject.get("outgoingLinks").getAsJsonArray()) {
+                outgoingLinks.merge(link.getAsString(), 1, Integer::sum);
+            }
+
+            Page page = new Page(url, title, headings, paragraphs, outgoingLinks);
+            for (JsonElement link : pageJsonObject.get("incomingLinks").getAsJsonArray()) {
+                page.addIncomingLink(link.getAsString());
+            }
+            pages.add(page);
         }
         ForwardIndex forwardIndex = new ForwardIndex(pages);
         ri = new ReverseIndex(forwardIndex);

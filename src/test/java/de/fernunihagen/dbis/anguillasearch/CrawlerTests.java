@@ -62,8 +62,10 @@ class CrawlerTests {
             // Get the number of links
             Crawler crawler = new Crawler(seedUrls);
             crawler.crawl();
-            int numLinks = crawler.nLinks(false);
-   
+            int numLinks = 0;
+            for (Page page : crawler.getPages()) {
+                numLinks += page.nIncomingLinks(false);
+            }
 
 
             // Verify that the number of links is correct, i.e. the same as stated in the JSON file

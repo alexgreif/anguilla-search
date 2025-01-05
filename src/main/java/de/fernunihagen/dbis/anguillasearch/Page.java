@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import java.util.Set;
 import java.util.Map;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -28,50 +28,26 @@ public class Page {
     private final String paragraphs;
     private Map<String, Integer> incomingLinks;
     private Map<String, Integer> outgoingLinks;
-    
+
     /**
-     * A constructor that scrapes the required contents from a given URL.
-     * Does not add incoming links.
+     * Instantiates representation of a web page.
+     * Saves relevant content of web page but does not add incoming link.
      * If required, incoming links need to be added after instantiation using the addIncomingLink method.
-     * This method is used during crawling to scrape the content of web pages in the queue.
+     * This method is used during crawling to save the scraped contents.
      * 
-     * @param url the URL of the web page to be scraped
-     * @throws IOException
+     * @param url URL of web page
+     * @param title title of web page
+     * @param headings single {@code String} containing all headings of web page
+     * @param paragraphs single {@code String} containing all paragraphs of web page
+     * @param outgoingLinks {@code Map} from link to count of occurence of that link
      */
-    public Page(String url) throws IOException {
-        Document doc = Jsoup.connect(url).get();
+    public Page(String url, String title, String headings, String paragraphs, Map<String, Integer> outgoingLinks) {
         this.url = url;
-        this.title = doc.title();
-        this.headings = doc.select("h1, h2, h3, h4, h5, h6").text();
-        this.paragraphs = doc.select("p").text();
+        this.title = title;
+        this.headings = headings;
+        this.paragraphs = paragraphs;
         this.incomingLinks = new HashMap<>();
-        this.outgoingLinks = new HashMap<>();
-
-        for (Element link : doc.select("a[href]")) {
-            this.outgoingLinks.merge(link.attr("abs:href"), 1, Integer::sum);
-        }
-    }
-
-    /**
-     * A Constructor that creates a page intance based on a jsonObject.
-     * This constructor is only used in the ReverseIndexTests.
-     * 
-     * @param jsonObject a jsonObject that holds url, title, headings, paragraphs, outgoingLinks and incomingLinks of a web page
-     */
-    public Page(JsonObject jsonObject) {
-        this.url = jsonObject.get("url").getAsString();
-        this.title = jsonObject.get("title").getAsString();
-        this.headings = jsonObject.get("headings").getAsString();
-        this.paragraphs = jsonObject.get("paragraphs").getAsString();
-        this.incomingLinks = new HashMap<>();
-        this.outgoingLinks = new HashMap<>();
-
-        for (JsonElement link : jsonObject.get("incomingLinks").getAsJsonArray()) {
-            this.incomingLinks.merge(link.getAsString(), 1, Integer::sum);
-        }
-        for (JsonElement link : jsonObject.get("outgoingLinks").getAsJsonArray()) {
-            this.outgoingLinks.merge(link.getAsString(), 1, Integer::sum);
-        }
+        this.outgoingLinks = outgoingLinks;
     }
 
     /**
@@ -85,6 +61,15 @@ public class Page {
     }
 
     /**
+     * Returns URLs of web pages that link to this Page with the number of those links.
+     * 
+     * @return {@code Map} from URL to count of links
+     */
+    public Map<String, Integer> getIncomingLinksWithCounts() {
+        return this.incomingLinks;
+    }
+
+    /**
      * Returns URLs of web pages that link to this Page.
      * This method is used for computing PageRank.
      * 
@@ -92,6 +77,15 @@ public class Page {
      */
     public Set<String> getIncomingLinks() {
         return this.incomingLinks.keySet();
+    }
+
+    /**
+     * Returns URLs of web pages that this Page links to with the number of those links.
+     * 
+     * @return {@code Map} from URL to count of links
+     */
+    public Map<String, Integer> getOutgoingLinksWithCounts() {
+        return this.outgoingLinks;
     }
 
     /**

@@ -74,7 +74,8 @@ public final class AnguillaSearch {
             System.out.println("Enter search query (or ’exit’ to quit):");
             String query = scanner.nextLine();
             if (query.equals("exit")) {
-                return;
+                scanner.close();
+                break;
             }
             System.out.println();
             SearchEngine.SearchResult searchResult = eng.search(query);
