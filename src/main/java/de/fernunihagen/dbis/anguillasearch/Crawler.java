@@ -27,6 +27,7 @@ class Crawler {
     private Collection<String> seedUrls;
     private Map<String, Page> urlToPage;
     private static final Logger LOGGER = LoggerFactory.getLogger(Crawler.class);
+    private static final int MAXPAGES = 10000;
     
     /**
      * Creates Crawler instanced based on {@code Array} of seed URLs.
@@ -48,9 +49,12 @@ class Crawler {
 
     /**
      * Creates collection of pages by crawling, starting from the crawler's seed URLs.
+     * Stops crawling when either no more new pages can be found or 10.000 pages (including seed pages) have been found.
+     * If there are more than 10.000 seed URLs, will scrape all seed URLs but nothing else.
+     * Use crawl(int maxPages) constructor if you want to specify a different upper limit.
      */
     void crawl() {
-        this.findPages();
+        this.findPages(MAXPAGES);
         this.setIncomingLinks();
     }
 
@@ -140,37 +144,7 @@ class Crawler {
             }
         }
     }
-
-    /**
-     * Does actual crawling.
-     * Finds pages and scrapes their contents. Starts crawling in this.seedUrls.
-     */
-    private void findPages() {
-        this.urlToPage = new HashMap<>();
-        Queue<String> queue = new LinkedList<>(this.seedUrls);
-
-        while (!queue.isEmpty()) {
-            // Dequeue first URL, scrape and save Page Object in URL to Page map
-            String url = queue.remove();
-            Page page;
-            try {
-                page = parsePage(url);
-            } catch (IOException e) {
-                LOGGER.error(String.format("Failed to parse %s", url));
-                LOGGER.error(e.getMessage());
-                continue;
-            }
-            urlToPage.put(url, page);
-
-            // Append URLs from outgoing links to queue
-            for (String link : page.outgoingLinksSet()) {
-                if (!urlToPage.containsKey(link)) {
-                    queue.add(link);
-                }
-            }   
-        }
-    }
-
+    
     /**
      * Does actual crawling.
      * Finds pages and scrapes their contents. Starts crawling in this.seedUrls.
@@ -191,6 +165,8 @@ class Crawler {
             try {
                 page = parsePage(url);
             } catch (IOException e) {
+                LOGGER.error(String.format("Failed to parse %s", url));
+                LOGGER.error(e.getMessage());
                 continue;
             }
             urlToPage.put(url, page);

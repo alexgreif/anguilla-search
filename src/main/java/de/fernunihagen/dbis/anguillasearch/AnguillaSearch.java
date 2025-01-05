@@ -51,13 +51,15 @@ public final class AnguillaSearch {
         }
 
         // Start Search Engine
+        List<String> allSeedUrls;
         try {
-            crawler = new Crawler(getAllSeedUrls());
+            allSeedUrls = getAllSeedUrls();
         } catch (IOException e) {
             System.out.println("Failed to read seed URLs");
             LOGGER.error(e.getMessage());
             return;
         }
+        crawler = new Crawler(allSeedUrls);
         crawler.crawl();
         System.out.println();
         System.out.println("Preparing search engine");
@@ -68,7 +70,7 @@ public final class AnguillaSearch {
         System.out.println("You can now start searching");
         System.out.println();
         
-        // Run Search Engine
+        // Run Search Engine in infinite loop
         Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.println("Enter search query (or ’exit’ to quit):");

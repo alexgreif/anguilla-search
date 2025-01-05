@@ -120,7 +120,7 @@ class PageRank {
         Map<String, Double> urlToRank = initialUrlToRank;
         double diffSum = 1;
         int i = 1;
-        int maxUrlLength = urlToRank.keySet().stream().map(s->s.length()).max(Integer::compare).get();
+        int maxUrlLength = urlToRank.keySet().stream().map(s->s.length()).max(Integer::compare).orElse(0);
         while (diffSum >= epsilon && i != maxIters+1) {
             System.out.println(String.format("Iteration %s", i));
             // Iterate over web pages
