@@ -3,7 +3,6 @@ package de.fernunihagen.dbis.anguillasearch;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -34,23 +33,6 @@ class SearchEngine {
     }
 
     /**
-     * Starts search engine
-     */
-    private void run(Boolean verbose) {
-        System.out.println("You can start your search now...");
-        System.out.println();
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
-            System.out.println("Enter search query (or ’exit’ to quit):");
-            String query = scanner.nextLine();
-            if (query.equals("exit")) {
-                return;
-            }
-            this.search(query, verbose);
-        }
-    }
-
-    /**
      * Search web pages in index for a query.
      * Calculates final score as weighted average of Cosine Similarity, TfIdf and Page Rank.
      * 
@@ -72,7 +54,7 @@ class SearchEngine {
             results.add(new SearchResult.SearchResultEntry(url, score, cosineSimilarity, tfIdf, pageRank));
         }
 
-        if (verbose) {
+        if (Boolean.TRUE.equals(verbose)) {
             results.prettyPrint();
         }
         return results;
