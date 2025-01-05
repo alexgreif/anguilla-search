@@ -31,7 +31,7 @@ public class Index {
         List<Entry<String, Double>> resultsList = new LinkedList<>(tfIdfQuery(query).entrySet());
         Collections.sort(
             resultsList,
-            (Entry<String, Double> r1, Entry<String, Double> r2) -> Double.compare(r1.getValue(), r2.getValue())
+            (Entry<String, Double> r1, Entry<String, Double> r2) -> Double.compare(r2.getValue(), r1.getValue())
         );
         return resultsList;
     }

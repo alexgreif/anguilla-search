@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for cosine similarity.
  */
-class CosineNormMapTests {
+class CosineTests {
 
 
     @Test
