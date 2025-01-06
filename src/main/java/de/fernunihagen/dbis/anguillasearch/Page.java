@@ -17,8 +17,8 @@ public class Page {
     private String title;
     private String headings;
     private String paragraphs;
-    private Map<String, Integer> incomingLinks;
-    private Map<String, Integer> outgoingLinks;
+    private Map<String, Integer> incomingLinks; // Maps URL to number of incoming links from that page
+    private Map<String, Integer> outgoingLinks; // Maps URL to number of outgoing links to that page
 
     /**
      * Instantiates representation of a web page.

@@ -149,8 +149,6 @@ public class Crawler {
      * Does actual crawling.
      * Finds pages and scrapes their contents. Starts crawling in this.seedUrls.
      * Stops crawling after max(len(seedUrls), maxPages) have been added to this.pages.
-     * Same as findPages() but stops after maxPages have been found.
-     * Repeats a lot of code for efficiency. Otherwise there would be two unnecessary comparisons for each site when using INFINITY.
      * 
      * @param maxPages crawling will be stopped after this number of pages have been crawled   
      */
@@ -175,7 +173,7 @@ public class Crawler {
             for (String link : page.outgoingLinksSet()) {
                 if (this.nPages() + queue.size() >= maxPages) {
                     break;
-                } else if (!urlToPage.containsKey(link)) {
+                } else if (!urlToPage.containsKey(link) && !queue.contains(link)) {
                         queue.add(link);
                     }
             }

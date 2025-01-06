@@ -52,6 +52,19 @@ public final class AnguillaSearch {
             LOGGER.error(e.getMessage());
         }
 
+        // Aufgabe 3.5 Vergleich
+        String[] seedUrlsNet3 = {"http://mozzarella-and-edam.cheesy3", "http://asiago-and-brie.cheesy3", "http://quark-and-slovakianbryndza.cheesy3"};
+        String[] queryTokens = {"burrata", "slovakianbryndza", "cantal"};
+        crawler = new Crawler(seedUrlsNet3);
+        crawler.crawl();
+        SearchEngine eng3 = new SearchEngine(crawler.getPages());
+        double[] tfIdfWeights = {1, 0, 0};
+        double[] cosineWeights = {0, 1, 0};
+        for (String tkn : queryTokens) {
+            eng3.search(tkn, tfIdfWeights, true);
+            eng3.search(tkn, cosineWeights, true);
+        }
+        
         // Start Search Engine
         List<String> allSeedUrls;
         try {
