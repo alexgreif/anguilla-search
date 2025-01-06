@@ -51,7 +51,7 @@ After you've been provided your search results, Anguilla Search will immediately
 
 Here is an example of how Anguilla Searched can be used:
 
-<img src="SampleUsage.png" alt="Sample usage of Anguilla Search" width="600"/>
+<img src="figures/SampleUsage.png" alt="Sample usage of Anguilla Search" width="600"/>
 
 
 # Anguilla Search (Dev)

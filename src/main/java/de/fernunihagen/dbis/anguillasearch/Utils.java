@@ -13,7 +13,9 @@ import java.util.Optional;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// This is a utility class that provides some helper methods for the tests
+/**
+ * This is a utility class that provides some static helper methods for various other components.
+ */
 public class Utils {
     
     private Utils() {}
@@ -39,20 +41,6 @@ public class Utils {
             jsonObjects.add(parseJSONFile(file.getAbsolutePath()));
         }
         return jsonObjects;
-    }
-
-    /**
-     * Counts the occurence of all elements in a {@code List}.
-     * Use cases:
-     *  1. In StringProcessing class to count the occurence of tokens on a web page or in a query text.
-     *  2. In Page class to count occurence of links on or to a web page.
-     * 
-     * @param <T> type of {@code List} elements
-     * @param list {@code List} of elements to be counted
-     * @return {@code Map} from elements to counts
-     */
-    public static <T> Map<T, Integer> listToCounts(List<T> list) {
-        return list.stream().collect(Collectors.groupingBy(e -> e, Collectors.reducing(0, e -> 1, Integer::sum)));
     }
 
     /**

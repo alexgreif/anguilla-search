@@ -16,7 +16,9 @@ import com.mxgraph.model.mxGraphModel;
 import com.mxgraph.util.mxCellRenderer;
 import com.mxgraph.util.mxConstants;
 
-
+/**
+ * Creates and plots Graphs that represent a network of web pages
+ */
 class NetworkGraph {
     private mxGraphModel model;
     private mxCircleLayout layout;
