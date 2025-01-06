@@ -39,24 +39,19 @@ There are two ways main ways to start Anguilla Search:
    
 In any case, the program is started by executing the JAR. Both approaches are described in more detail in the chapter [Execute the JAR](#execute-the-jar).
 
-The JAR can be found on the project's [Release Page](https://git.propra-prod1.fernuni-hagen.de/propra/ws24-25/q4214242/-/releases). However, it must be noted that the JAR alone cannot be run successfully without it's Dependencies, that are found in the project's *target/libs* folder.
+The JAR can be found on the project's [Release Page](https://git.propra-prod1.fernuni-hagen.de/propra/ws24-25/q4214242/-/releases). However, it must be noted that the JAR alone cannot be run successfully without it's Dependencies that are found in the project's *target/libs* folder.
 
 ## Usage
 
-Once the JAR is executed, Anguilla Search will take a few seconds to start up. The program will let you know when it's ready and prompt you to Enter your query like so:
-![Anguilla Search in done loading and prompts you to enter your Query](QueryPrompt.png)
-
-<img src="QueryPrompt.png" alt="Anguilla Search in done loading and prompts you to enter your Query" width="200"/>
-
-You are now ready to start searching. Just enter your query and confirm by pressing `Enter`. Anguilla Search will then provide you with a list of all web pages that match your query, sorted from best to worst fit.
-
-![Query and results](Query.png)
+Once the JAR is executed, Anguilla Search will take a few seconds to start up. The program will let you know when it's ready and prompt you to enter your query. After entering your query, you can confirm by pressing `Enter`. Anguilla Search will then provide you with a list of all web pages that match your query, sorted from best to worst fit.
 
 > *PRO TIP:* The more often you repeat a word in your query, the remaining query being the same, the higher it's importance for assessing the pages' level of fit.
 
-After you've been provided your search results, Anguilla Search will immediately prompt you to enter your next query. Once your done searching, simply enter *exit* and the program will be terminated.
+After you've been provided your search results, Anguilla Search will immediately prompt you to enter your next query. Once you're done searching, simply enter *exit* and the program will be terminated.
 
-![Sample usage of Anguilla Search](SampleUsage.png)
+Here is an example of how Anguilla Searched can be used:
+
+<img src="SampleUsage.png" alt="Sample usage of Anguilla Search" width="600"/>
 
 
 # Anguilla Search (Dev)
