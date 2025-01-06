@@ -1,3 +1,46 @@
+# Anguilla Search
+
+Anguilla Search is a web search engine. If the user enters a search query, Anguilla Search will provide them with a list of web pages that best match their query. Anguilla Search uses a simple command line based user interface, that is easy to start up and operate.
+
+**Features**
+
+- Find web pages that match a given search query.
+- Receive the search results ordered by fit, with the best fitting pages right at the top of the list.
+- Easy to start and operate using a simple command line interface.
+
+
+## Contents
+
+- [Anguilla Search]
+  - [Installation](#installation)
+  - [Usage](#usage)
+
+
+## Installation
+
+There are two ways main ways to start Anguilla Search:
+
+1. In the Development Environment
+2. Using the Docker Image
+   
+In any case, the program is started by executing the JAR. Both approaches are described in more detail in the chapter [Execute the JAR](#execute-the-jar).
+
+The JAR can be found on the project's [Release Page](https://git.propra-prod1.fernuni-hagen.de/propra/ws24-25/q4214242/-/releases). However, it must be noted that the JAR alone cannot be run successfully without it's Dependencies, that are found in the project's *target/libs* folder.
+
+## Usage
+
+Once the JAR is executed, Anguilla Search will take a few seconds to start up. The program will let you know when it's ready and prompt you to Enter your query like so:
+![Anguilla Search in done loading and prompts you to enter your Query](QueryPrompt.png)
+
+You are now ready to start searching. Just enter your query and confirm by pressing `Enter`. Anguilla Search will then provide you with a list of all web pages that match your query, sorted from best to worst fit.
+
+![Query and results](Query.png)
+
+> *Pro Tip:* The more often you repeat a word in your query, the remaining query being the same, the higher it's importance for assessing the pages' level of fit.
+
+After you've been provided your search results, Anguilla Search will immediately prompt you to enter your next query. If your done searching, simply enter *exit* and the program will be terminated.
+
+
 # Anguilla Search (Dev)
 
 This is a complete programming environment with minimal dependencies. VSCode is provided as a web application ([Coder Server](https://coder.com)) with all the necessary extensions.
@@ -19,8 +62,12 @@ An intranet with various websites is also automatically provided to ensure a sta
 
 ## Contents
 
-- [Anguilla Search (Dev)](#anguilla-search-dev)
+- [Anguilla Search](#anguilla-search)
   - [Contents](#contents)
+  - [Installation](#installation)
+  - [Usage](#usage)
+- [Anguilla Search (Dev)](#anguilla-search-dev)
+  - [Contents](#contents-1)
   - [Installation (Dependencies)](#installation-dependencies)
   - [Quick Start (Working with VSCode in a Web Browser)](#quick-start-working-with-vscode-in-a-web-browser)
   - [Reach the Intranet from Host](#reach-the-intranet-from-host)
