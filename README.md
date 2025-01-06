@@ -11,9 +11,23 @@ Anguilla Search is a web search engine. If the user enters a search query, Angui
 
 ## Contents
 
-- [Anguilla Search]
+- [Anguilla Search](#anguilla-search)
+  - [Contents](#contents)
   - [Installation](#installation)
   - [Usage](#usage)
+- [Anguilla Search (Dev)](#anguilla-search-dev)
+  - [Installation (Dependencies)](#installation-dependencies)
+  - [Quick Start (Working with VSCode in a Web Browser)](#quick-start-working-with-vscode-in-a-web-browser)
+  - [Reach the Intranet from Host](#reach-the-intranet-from-host)
+  - [Installation (using local VSCode or VSCodium)](#installation-using-local-vscode-or-vscodium)
+    - [Locally Installed VSCode](#locally-installed-vscode)
+    - [Locally Installed VSCodium](#locally-installed-vscodium)
+  - [Usage (local VSCode or VSCodium)](#usage-local-vscode-or-vscodium)
+  - [Generate and View Code Style Reportings](#generate-and-view-code-style-reportings)
+  - [Execute the JAR](#execute-the-jar)
+    - [Execute the JAR in the Development Environment](#execute-the-jar-in-the-development-environment)
+    - [Execute the JAR using the Docker Image](#execute-the-jar-using-the-docker-image)
+  - [List of pre-installed VSCode/Codium Extensions](#list-of-pre-installed-vscodecodium-extensions)
 
 
 ## Installation
@@ -36,9 +50,11 @@ You are now ready to start searching. Just enter your query and confirm by press
 
 ![Query and results](Query.png)
 
-> *Pro Tip:* The more often you repeat a word in your query, the remaining query being the same, the higher it's importance for assessing the pages' level of fit.
+> *PRO TIP:* The more often you repeat a word in your query, the remaining query being the same, the higher it's importance for assessing the pages' level of fit.
 
-After you've been provided your search results, Anguilla Search will immediately prompt you to enter your next query. If your done searching, simply enter *exit* and the program will be terminated.
+After you've been provided your search results, Anguilla Search will immediately prompt you to enter your next query. Once your done searching, simply enter *exit* and the program will be terminated.
+
+![Example usage of Anguilla Search](ExampleUsage.png)
 
 
 # Anguilla Search (Dev)
@@ -58,28 +74,6 @@ An intranet with various websites is also automatically provided to ensure a sta
 - Java 17 and Maven already integrated.
 - DevContainers environment with all required extensions for easy working with a locally available VSCode.
 - Static intranet for development and testing.
-
-
-## Contents
-
-- [Anguilla Search](#anguilla-search)
-  - [Contents](#contents)
-  - [Installation](#installation)
-  - [Usage](#usage)
-- [Anguilla Search (Dev)](#anguilla-search-dev)
-  - [Contents](#contents-1)
-  - [Installation (Dependencies)](#installation-dependencies)
-  - [Quick Start (Working with VSCode in a Web Browser)](#quick-start-working-with-vscode-in-a-web-browser)
-  - [Reach the Intranet from Host](#reach-the-intranet-from-host)
-  - [Installation (using local VSCode or VSCodium)](#installation-using-local-vscode-or-vscodium)
-    - [Locally Installed VSCode](#locally-installed-vscode)
-    - [Locally Installed VSCodium](#locally-installed-vscodium)
-  - [Usage (local VSCode or VSCodium)](#usage-local-vscode-or-vscodium)
-  - [Generate and View Code Style Reportings](#generate-and-view-code-style-reportings)
-  - [Execute the JAR](#execute-the-jar)
-    - [Execute the JAR in the Development Environment](#execute-the-jar-in-the-development-environment)
-    - [Execute the JAR using the Docker Image](#execute-the-jar-using-the-docker-image)
-  - [List of pre-installed VSCode/Codium Extensions](#list-of-pre-installed-vscodecodium-extensions)
 
 
 ## Installation (Dependencies)
