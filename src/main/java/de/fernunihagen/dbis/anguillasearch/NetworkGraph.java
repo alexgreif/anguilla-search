@@ -17,16 +17,19 @@ import com.mxgraph.util.mxCellRenderer;
 import com.mxgraph.util.mxConstants;
 
 
-public class NetworkGraph {
-    mxGraphModel model;
-    mxCircleLayout layout;
-    mxGraph graph;
-    Crawler crawler;
+class NetworkGraph {
+    private mxGraphModel model;
+    private mxCircleLayout layout;
+    private mxGraph graph;
 
-    public NetworkGraph(Crawler crawler) {
+    /**
+     * Creates vertices and edges that represent the web pages in crawler.
+     * 
+     * @param crawler holds the web pages that are to be represented by graph
+     */
+    NetworkGraph(Crawler crawler) {
         this.model = new mxGraphModel();
         this.graph = new mxGraph(model);
-        this.crawler = crawler;
         this.layout = new mxCircleLayout(graph);
 
         var parent = graph.getDefaultParent();
@@ -35,7 +38,6 @@ public class NetworkGraph {
         model.beginUpdate();
         for (String url : crawler.getUrls()) {
             Object cell = graph.insertVertex(parent, url, url, 0, 0, 100, 30, "ROUNDED");
-            //graph.updateCellSize(cell, true);
             vertices.put(url, cell);
         }
         for (Crawler.Link link : crawler.getLinksWithin()) {
@@ -48,19 +50,26 @@ public class NetworkGraph {
         model.endUpdate();
     }
 
-    public void setStyle() {
+    /**
+     * Define style of the graph
+     */
+    private void setStyle() {
         mxStylesheet stylesheet = this.graph.getStylesheet();
         HashMap<String, Object> style = new HashMap<>();
         style.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_RECTANGLE);
         style.put(mxConstants.STYLE_OPACITY, 50);
         style.put(mxConstants.STYLE_FONTCOLOR, "#774400");
-        //style.put(mxConstants.STYLE_FONTSIZE, 100);
         stylesheet.getDefaultVertexStyle().put(mxConstants.STYLE_FONTSIZE, 20);
         stylesheet.putCellStyle("ROUNDED", style);
     }
 
-    public void draw(String filePath) throws IOException{
-        //this.setStyle();
+    /**
+     * Actually draws the graph and saves the result to a png file.
+     * 
+     * @param filePath path where to save the file
+     * @throws IOException
+     */
+    void draw(String filePath) throws IOException{
         BufferedImage img = mxCellRenderer.createBufferedImage(graph, null, 1, null, false, null);
         ImageIO.write(img, "png", new File(filePath));
     }

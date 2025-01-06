@@ -102,14 +102,44 @@ class SearchEngine {
      * Performs search and computes relevant metrics.
      */
     private class Searcher {
+        /**
+         * The query string
+         */
         private String query;
+        /**
+         * Weights for TfIdf, Cosine Similarity and PageRank.
+         * In exactly that order.
+         */
         private double[] scoreWeights;
+        /**
+         * {@code Array} of URLs of pages containing at least one search token.
+         */
         private String[] urls;
+        /**
+         * 2d-{@code Array} of raw scores by web pages.
+         * "Rows" (first index) are pages.
+         * "Columns" (second index) are the three scores TfIdf, Cosine Similarity and PageRank, in this exact order.
+         */
         private double[][] rawScores;
+        /**
+         * 2d-{@code Array} of standardized scores by web pages.
+         * "Rows" (first index) are pages.
+         * "Columns" (second index) are the three scores TfIdf, Cosine Similarity and PageRank, in this exact order.
+         */
         private double[][] standardizedScores;
+        /**
+         * {@code Array} of totalScore for each web page
+         */
         private double[] totalScores;
+        /**
+         * The number of pages containing at least one search token
+         */
         private int nPages;
 
+        /**
+         * Constructor that does nothing.
+         * Except for constructing.
+         */
         private Searcher() {}
 
         /**
