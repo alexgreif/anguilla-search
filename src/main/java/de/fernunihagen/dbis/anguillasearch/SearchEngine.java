@@ -1,8 +1,6 @@
 package de.fernunihagen.dbis.anguillasearch;
 
-import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -13,170 +11,263 @@ import de.fernunihagen.dbis.anguillasearch.index.Index;
 
 
 /**
- * An index consists of a Forward Index, a Reverse Index and Page Ranks.
+ * Finds web pages matching a search query and sorts the results by fit and relevance.
+ * To do so, the Search Engine uses the Index and PageRank.
  */
 class SearchEngine {
-    Index index;
-    Map<String, Double> urlToPageRank;
-    static final double COSINESIMILARITYWEIGHT = 1;
-    static final double TFIDFWEIGHT = 0;
-    static final double PAGERANKWEIGHT = 1;
+    private Index index;
+    private Map<String, Double> urlToPageRank;
+    private Searcher searcher;
+    /**
+     * Weights for TfIdf, Cosine Similarity and PageRank.
+     * In exactly that order.
+     */
+    private static final double[] SCOREWEIGHTS = {0, 1, 1};
     
     /**
      * Constructs Search Engine from Collection of pages.
      * 
      * @param pages {@code Collection} of {@code Page}s for which to create index
      */
-    public SearchEngine(Collection<Page> pages) {
+    SearchEngine(Collection<Page> pages) {
         this.index = new Index(pages);
         this.urlToPageRank = PageRank.compute(pages, 0.85, Math.pow(10,-12), (int) Math.pow(10,6),false);
+        this.searcher = new Searcher();
     }
 
     /**
      * Search web pages in index for a query.
-     * Calculates final score as weighted average of Cosine Similarity, TfIdf and Page Rank.
+     * Results are sorted in descending order by a total score, calculated as weighted
+     * average of standardized values of Cosine Similarity, TfIdf and Page Rank.
      * 
      * @param query the search query
-     * @param cosineSimilarityWeight
-     * @param tfIdfWeight
-     * @param pageRankWeight
+     * @param print if {@code true}, prints results in a neatly formatted table
      * @return Search results sorted by score
      */
-    public SearchResult search(String query, double cosineSimilarityWeight, double tfIdfWeight, double pageRankWeight, Boolean verbose) {
-        Map<String, Double> urlToTfIdf = index.tfIdfQuery(query);
-        SearchResult results = new SearchResult();
-        for (Map.Entry<String, Double> entry : urlToTfIdf.entrySet()) {
-            String url = entry.getKey();
-            double tfIdf = entry.getValue();
-            double cosineSimilarity = index.cosineSimilarity(url, query);
-            double pageRank = this.urlToPageRank.get(url);
-            double score = computeScore(cosineSimilarity, tfIdf, pageRank, cosineSimilarityWeight, tfIdfWeight, pageRankWeight);
-            results.add(new SearchResult.SearchResultEntry(url, score, cosineSimilarity, tfIdf, pageRank));
-        }
+    SortedSet<SearchResultEntry> search(String query, Boolean print) {
+        // PageRank mean ist zwar 1/n, aber der gesparte Rechenaufwand wäre es nicht Wert das durch einen Sonderfall auszunutzen
+        return search(query, SCOREWEIGHTS, print);
+    }
 
-        if (Boolean.TRUE.equals(verbose)) {
-            results.prettyPrint();
+    /**
+     * Search web pages in index for a query.
+     * Results are sorted in descending order by a total score, calculated as weighted
+     * average of standardized values of Cosine Similarity, TfIdf and Page Rank.
+     * 
+     * @param query the search query
+     * @param scoreWeights weights for TfIdf, Cosine Similarity and PageRank, in that exact order
+     * @param print if {@code true}, prints results in a neatly formatted table
+     * @return Search results sorted by score
+     */
+    SortedSet<SearchResultEntry> search(String query, double[] scoreWeights, Boolean print) {
+        // PageRank mean ist zwar 1/n, aber der gesparte Rechenaufwand wäre es nicht Wert das durch einen Sonderfall auszunutzen
+        SortedSet<SearchResultEntry> results = this.searcher.search(query, scoreWeights);
+        if (Boolean.TRUE.equals(print)) {
+            printResults(results);
         }
         return results;
     }
 
     /**
-     * Search web pages in index for a query.
-     * Calculates final score as weighted average of Cosine Similarity, TfIdf and Page Rank.
-     * Uses default weights defined as class attributes.
-     * 
-     * @param query the search query
-     * @return Search results sorted by score
+     * Print the search results as a table sorted by total score in descending order.
+     * Table columns are URL, total score, cosine similarity, TfIdf score, PageRank.
      */
-    public SearchResult search(String query, Boolean verbose) {
-        return search(query, COSINESIMILARITYWEIGHT, TFIDFWEIGHT, PAGERANKWEIGHT, verbose);
+    private static void printResults(SortedSet<SearchResultEntry> results) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i=0; i<94; i++) {
+            stringBuilder.append("-");
+        }
+        String horizontalLine = stringBuilder.toString();
+        System.out.println(horizontalLine);
+        String urlFormat = "%1$-45s";
+        System.out.println(String.format(urlFormat, "| URL") + " | " +
+        "Score" + "  | " +
+        "TfIdf" + " | " +
+        "Cosine Similarity" + " | " +
+        "PageRank" + " | ");
+        System.out.println(horizontalLine);
+        
+        for (SearchResultEntry entry : results) {
+            System.out.println(String.format(urlFormat, "| " + entry.url) + " | " +
+            StringUtils.center(String.format("%.3f", entry.score), 6) + " | " +
+            StringUtils.center(String.format("%.3f", entry.tfIdf), 5) + " | " +
+            StringUtils.center(String.format("%.3f", entry.cosineSimilarity), 17) + " | " +
+            StringUtils.center(String.format("%.3f", entry.pageRank), 8) + " | ");
+        }
+        System.out.println(horizontalLine);
+        System.out.println();
     }
 
     /**
-     * Computes overall score as weighted average of Cosine Similarity, TfIdf and Page Rank.
-     * Uses default weights defined as class attributes. 
-     * 
-     * @param cosineSimilarity
-     * @param tfIdf
-     * @param pageRank
-     * @return overall score
+     * Performs search and computes relevant metrics.
      */
-    private static double computeScore(double cosineSimilarity, double tfIdf, double pageRank) {
-        return computeScore(cosineSimilarity, tfIdf, pageRank,
-        COSINESIMILARITYWEIGHT, TFIDFWEIGHT, PAGERANKWEIGHT);
-    }
+    private class Searcher {
+        private String query;
+        private double[] scoreWeights;
+        private String[] urls;
+        private double[][] rawScores;
+        private double[][] standardizedScores;
+        private double[] totalScores;
+        private int nPages;
 
-    /**
-     * Compute overall score as weighted average of Cosine Similarity, TfIdf and Page Rank.
-     * 
-     * @param cosineSimilarity
-     * @param tfIdf
-     * @param pageRank
-     * @param cosineSimilarityWeight
-     * @param tfIdfWeight
-     * @param pageRankWeight
-     * @return overall score
-     */
-    private static double computeScore(double cosineSimilarity, double tfIdf, double pageRank,
-    double cosineSimilarityWeight, double tfIdfWeight, double pageRankWeight) {
-        double score = cosineSimilarity * cosineSimilarityWeight;
-        score += tfIdf * tfIdfWeight;
-        score += pageRank * pageRankWeight;
-        score = score / (cosineSimilarityWeight + tfIdfWeight + pageRankWeight);
-        return score;
-    }
+        private Searcher() {}
 
-    /**
-     * Results of a search by all three metrics Cosine Similarity, TfIdf and Page Rank.
-     */
-    private static class SearchResult {
-        SortedSet<SearchResultEntry> results;
-
-        private SearchResult() {
-            this.results = new TreeSet<>();
-        }
-
-        private void add(SearchResultEntry entry) {
-            this.results.add(entry);
-        }
-
-        private List<String> getUrls() {
-            List<String> urls = new ArrayList<>();
-            for (SearchResultEntry entry : this.results) {
-                urls.add(entry.url);
-            }
-            return urls;
-        }
-
-        public String toString() {
-            return this.results.toString();
-        }
-
-        private void prettyPrint() {
-            StringBuilder stringBuilder = new StringBuilder();
-            for (int i=0; i<94; i++) {
-                stringBuilder.append("-");
-            }
-            String horizontalLine = stringBuilder.toString();
-            System.out.println(horizontalLine);
-            String urlFormat = "%1$-45s";
-            System.out.println(String.format(urlFormat, "| URL") + " | " +
-            "Score" + " | " +
-            "Cosine Similarity" + " | " +
-            "TfIdf" + " | " +
-            "PageRank" + " | ");
-            System.out.println(horizontalLine);
+        /**
+         * Finds pages containing at least one of the query tokens.
+         * Returns results ordered in descending order by total score.
+         * 
+         * @param query the search query
+         * @param scoreWeights weights for TfIdf, Cosine Similarity and PageRank, in that exact order
+         * @return {@code SortedSet} of found pages
+         */
+        private SortedSet<SearchResultEntry> search(String query, double[] scoreWeights) {
+            // Set up instance variables
+            Map<String, Double> urlToTfIdf = SearchEngine.this.index.tfIdfQuery(query);
+            this.nPages = urlToTfIdf.size();
+            this.query = query;
+            this.scoreWeights = scoreWeights;
+            this.urls = new String[this.nPages];
+            this.rawScores = new double[this.nPages][3];
+            this.standardizedScores = new double[this.nPages][3];
+            this.totalScores = new double[this.nPages];
             
-            for (SearchResultEntry entry : this.results) {
-                System.out.println(String.format(urlFormat, "| " + entry.url) + " | " +
-                StringUtils.center(String.format("%.3f", entry.score), 5) + " | " +
-                StringUtils.center(String.format("%.3f", entry.cosineSimilarity), 17) + " | " +
-                StringUtils.center(String.format("%.3f", entry.tfIdf), 5) + " | " +
-                StringUtils.center(String.format("%.3f", entry.pageRank), 8) + " | ");
+            // Compute scores
+            double[] sums = {0., 0., 0.};
+            double[] squareSums = {0., 0., 0.};
+            this.setUrlsAndRawScores(sums, squareSums, urlToTfIdf);
+            this.setStandardizedAndTotalScores(sums, squareSums);
+
+            // Structure and return results
+            SortedSet<SearchResultEntry> results = new TreeSet<>();
+            for (int i=0; i<nPages; i++) {
+                results.add(new SearchResultEntry(urls[i], totalScores[i], rawScores[i][0], rawScores[i][1], rawScores[i][2]));
             }
-            System.out.println(horizontalLine);
-            System.out.println();
+            return results;
         }
 
-        private static class SearchResultEntry implements Comparable<SearchResultEntry> {
-            String url;
-            Double score;
-            Double cosineSimilarity;
-            Double tfIdf;
-            Double pageRank;
-
-            private SearchResultEntry(String url, Double score, Double cosineSimilarity, Double tfIdf, Double pageRank) {
-                this.url = url;
-                this.score = score;
-                this.cosineSimilarity = cosineSimilarity;
-                this.tfIdf = tfIdf;
-                this.pageRank = pageRank;
+        /**
+         * Computes standardized scores and then total score.
+         * Saves results in instance variables.
+         * 
+         * @param sums {@code Array} containing the sum for each score
+         * @param squareSums {@code Array} containing the sum of squared values for each score
+         */
+        private void setStandardizedAndTotalScores(double[] sums, double[] squareSums) {
+            // Calculate means and standard deviations for the 3 scores
+            double[] means = new double[3];
+            double[] standardDeviations = new double[3];
+            for (int i=0; i<3; i++) {
+                means[i] = sums[i] / this.nPages;
+                double sd = Math.sqrt(squareSums[i] / this.nPages - means[i] * means[i]);
+                standardDeviations[i] = sd != 0 ? sd : 1;
+                // If standard deviation is zero, we get NaN when standardizing because of zero division.
+                // However, if sd is zero, all values are the same, so there would be no information in that score anyway.
+                // By assigning an arbitrary non-zero value to standardDeviations[i], the i-th of the three metrics
+                // will basically be ignored, which is exactly what we want in that case.
             }
-
-            @Override
-            public int compareTo(final SearchResultEntry other) {
-                return Double.compare(other.score, this.score);
+            
+            // Calculate total score based on standardized scores and weights
+            for (int i=0; i<this.nPages; i++) {
+                for (int j=0; j<3; j++) {
+                    this.standardizedScores[i][j] = (rawScores[i][j] - means[j]) / standardDeviations[j];
+                }
+                this.totalScores[i] = weightedAverage(this.standardizedScores[i], this.scoreWeights);
             }
+        }
+
+        /**
+         * Assigns the correct values to instance variables for URLs and raw scores.
+         * Also computes sum of values and sum of squared values for each score in passed {@code Arrays}.
+         * 
+         * @param sums {@code Array} for sums of values
+         * @param squareSums {@code Array} for sums of scores
+         * @param urlToTfIdf {@code Map} from pages containing at least one of the search tokens to their TfIdf for the query
+         */
+        private void setUrlsAndRawScores(double[] sums, double[] squareSums, Map<String, Double> urlToTfIdf) {
+            
+            // Loop through pages to get scores and calculate sum and sum of squared values
+            int i = 0;
+            for (Map.Entry<String, Double> entry : urlToTfIdf.entrySet()) {
+                // Retrieve/compute scores
+                String url = entry.getKey();
+                this.urls[i] = url;
+                rawScores[i][0] = entry.getValue(); // TfIdf
+                rawScores[i][1] = index.cosineSimilarity(url, query); // Cosine Similarity
+                rawScores[i][2] = SearchEngine.this.urlToPageRank.get(url); // PageRank
+    
+                // Sum and sum of squared values
+                for (int j=0; j<3; j++) {
+                    double score = rawScores[i][j];
+                    sums[j] += score;
+                    squareSums[j] += score * score;
+                }
+    
+                // Move index along with pages
+                i++;
+            }
+        }
+
+        /**
+         * Helper method to compute a weighted average.
+         * Values and weights are matched by index in {@code Array}.
+         * 
+         * @param values {@code Array} of the values to be averaged
+         * @param weights {@code Array} of the corresponding weights
+         * @return
+         */
+        private static double weightedAverage(double[] values, double[] weights) {
+            int n = Math.min(values.length, weights.length);
+            double sum = 0;
+            double weightSum = 0;
+            for (int i=0; i<n; i++) {
+                if (weights[i] == 0) {
+                    continue;
+                }
+                sum += values[i] * weights[i];
+                weightSum += weights[i];
+            }
+            if (weightSum == 0) {
+                throw new IllegalArgumentException("Weights cannot sum to 0");
+            }
+            return sum / weightSum;
+        }
+    }
+
+    /**
+     * Search Result Entry for a single page.
+     * Consists of the page's URL along with search metrics.
+     */
+    private static class SearchResultEntry implements Comparable<SearchResultEntry> {
+        private String url;
+        private Double score;
+        private Double tfIdf;
+        private Double cosineSimilarity;
+        private Double pageRank;
+
+        /**
+         * Construct a Search Result Entry for a single web page
+         * 
+         * @param url
+         * @param score
+         * @param cosineSimilarity
+         * @param tfIdf
+         * @param pageRank
+         */
+        private SearchResultEntry(String url, Double score, Double tfIdf, Double cosineSimilarity, Double pageRank) {
+            this.url = url;
+            this.score = score;
+            this.tfIdf = tfIdf;
+            this.cosineSimilarity = cosineSimilarity;
+            this.pageRank = pageRank;
+        }
+
+        /**
+         * Compares two search entries by total score.
+         * This method helps sort search results by total score.
+         */
+        @Override
+        public int compareTo(final SearchResultEntry other) {
+            return Double.compare(other.score, this.score);
         }
     }
 }
