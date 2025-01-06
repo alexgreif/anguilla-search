@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * Creates a collection of Pages based on seed URLs.
  * Provides methods for retrieving information on those pages.
  */
-class Crawler {
+public class Crawler {
     private Collection<String> seedUrls;
     private Map<String, Page> urlToPage;
     private static final Logger LOGGER = LoggerFactory.getLogger(Crawler.class);
@@ -34,7 +34,7 @@ class Crawler {
      * 
      * @param seedUrls {@code Array} of seed URLs
      */
-    Crawler(String[] seedUrls) {
+    public Crawler(String[] seedUrls) {
         this.seedUrls = Arrays.asList(seedUrls);
     }
   
@@ -43,7 +43,7 @@ class Crawler {
      * 
      * @param seedUrls {@code Collection} of seed URLs
      */
-    Crawler(Collection<String> seedUrls) {
+    public Crawler(Collection<String> seedUrls) {
         this.seedUrls = seedUrls;
     }
 
@@ -53,7 +53,7 @@ class Crawler {
      * If there are more than 10.000 seed URLs, will scrape all seed URLs but nothing else.
      * Use crawl(int maxPages) constructor if you want to specify a different upper limit.
      */
-    void crawl() {
+    public void crawl() {
         this.findPages(MAXPAGES);
         this.setIncomingLinks();
     }
@@ -64,9 +64,18 @@ class Crawler {
      * 
      * @param maxPages maximum number of pages to be crawled (including seed pages)
      */
-    void crawl(int maxPages) {
+    public void crawl(int maxPages) {
         this.findPages(maxPages);
         this.setIncomingLinks();
+    }
+
+    /**
+     * Retrieves all crawled pages
+     * 
+     * @return {@code Collection} of crawled pages
+     */
+    public Collection<Page> getPages() {
+        return this.urlToPage.values();
     }
 
     /**
@@ -110,15 +119,6 @@ class Crawler {
      */
     int nPages() {
         return this.urlToPage.size();
-    }
-
-    /**
-     * Retrieves all crawled pages
-     * 
-     * @return {@code Collection} of crawled pages
-     */
-    Collection<Page> getPages() {
-        return this.urlToPage.values();
     }
 
     /**

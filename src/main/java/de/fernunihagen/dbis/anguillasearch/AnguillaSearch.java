@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
+import de.fernunihagen.dbis.anguillasearch.searchengine.SearchEngine;
+
 /**
  * Main class of the AnguillaSearch project.
  */

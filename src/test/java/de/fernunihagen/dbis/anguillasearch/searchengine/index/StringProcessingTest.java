@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch.index;
+package de.fernunihagen.dbis.anguillasearch.searchengine.index;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;

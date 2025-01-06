@@ -1,4 +1,5 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.searchengine;
+
 import java.util.ArrayList;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,6 +15,9 @@ import org.joda.time.LocalDateTime;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+
+import de.fernunihagen.dbis.anguillasearch.Crawler;
+import de.fernunihagen.dbis.anguillasearch.Utils;
 
 /**
  * Unit tests for the page rank algorithm.
@@ -110,7 +114,7 @@ class PageRankTests {
     }
 
     @Test
-    void correctPageRankScores() throws IOException{
+    void correctPageRankScores() {
         // Create a map with URLs and the correct page rank scores
         // These scores will be used to verify the correctness of the page rank algorithm
         Map<String, Double> correctPageRankScores = Map.of(

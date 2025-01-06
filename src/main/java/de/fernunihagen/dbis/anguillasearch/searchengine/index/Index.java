@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch.index;
+package de.fernunihagen.dbis.anguillasearch.searchengine.index;
 
 import java.util.Collection;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch.index;
+package de.fernunihagen.dbis.anguillasearch.searchengine.index;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.searchengine;
 
 import java.util.Map;
 import java.util.Collection;
@@ -7,14 +7,14 @@ import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 
-import de.fernunihagen.dbis.anguillasearch.index.Index;
-
+import de.fernunihagen.dbis.anguillasearch.Page;
+import de.fernunihagen.dbis.anguillasearch.searchengine.index.Index;
 
 /**
  * Finds web pages matching a search query and sorts the results by fit and relevance.
  * To do so, the Search Engine uses the Index and PageRank.
  */
-class SearchEngine {
+public class SearchEngine {
     private Index index;
     private Map<String, Double> urlToPageRank;
     private Searcher searcher;
@@ -29,7 +29,7 @@ class SearchEngine {
      * 
      * @param pages {@code Collection} of {@code Page}s for which to create index
      */
-    SearchEngine(Collection<Page> pages) {
+    public SearchEngine(Collection<Page> pages) {
         this.index = new Index(pages);
         this.urlToPageRank = PageRank.compute(pages, 0.85, Math.pow(10,-12), (int) Math.pow(10,6),false);
         this.searcher = new Searcher();
@@ -44,7 +44,7 @@ class SearchEngine {
      * @param print if {@code true}, prints results in a neatly formatted table
      * @return Search results sorted by score
      */
-    SortedSet<SearchResultEntry> search(String query, Boolean print) {
+    public SortedSet<SearchResultEntry> search(String query, Boolean print) {
         // PageRank mean ist zwar 1/n, aber der gesparte Rechenaufwand wäre es nicht Wert das durch einen Sonderfall auszunutzen
         return search(query, SCOREWEIGHTS, print);
     }
@@ -59,7 +59,7 @@ class SearchEngine {
      * @param print if {@code true}, prints results in a neatly formatted table
      * @return Search results sorted by score
      */
-    SortedSet<SearchResultEntry> search(String query, double[] scoreWeights, Boolean print) {
+    public SortedSet<SearchResultEntry> search(String query, double[] scoreWeights, Boolean print) {
         // PageRank mean ist zwar 1/n, aber der gesparte Rechenaufwand wäre es nicht Wert das durch einen Sonderfall auszunutzen
         SortedSet<SearchResultEntry> results = this.searcher.search(query, scoreWeights);
         if (Boolean.TRUE.equals(print)) {

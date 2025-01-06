@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.searchengine;
 
 import java.util.List;
 import java.util.Map.Entry;
@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-import de.fernunihagen.dbis.anguillasearch.index.Index;
+import de.fernunihagen.dbis.anguillasearch.Crawler;
+import de.fernunihagen.dbis.anguillasearch.Utils;
+import de.fernunihagen.dbis.anguillasearch.searchengine.index.Index;
 /**
  * Unit tests for the search.
  */
