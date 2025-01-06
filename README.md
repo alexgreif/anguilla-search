@@ -46,6 +46,8 @@ The JAR can be found on the project's [Release Page](https://git.propra-prod1.fe
 Once the JAR is executed, Anguilla Search will take a few seconds to start up. The program will let you know when it's ready and prompt you to Enter your query like so:
 ![Anguilla Search in done loading and prompts you to enter your Query](QueryPrompt.png)
 
+<img src="QueryPrompt.png" alt="Anguilla Search in done loading and prompts you to enter your Query" width="200"/>
+
 You are now ready to start searching. Just enter your query and confirm by pressing `Enter`. Anguilla Search will then provide you with a list of all web pages that match your query, sorted from best to worst fit.
 
 ![Query and results](Query.png)
@@ -54,7 +56,7 @@ You are now ready to start searching. Just enter your query and confirm by press
 
 After you've been provided your search results, Anguilla Search will immediately prompt you to enter your next query. Once your done searching, simply enter *exit* and the program will be terminated.
 
-![Example usage of Anguilla Search](ExampleUsage.png)
+![Sample usage of Anguilla Search](SampleUsage.png)
 
 
 # Anguilla Search (Dev)
