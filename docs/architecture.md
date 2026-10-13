@@ -11,7 +11,7 @@ flowchart TD
     M[Intranet metadata: seed URLs] --> C[Crawler]
     W[Static intranet websites] --> C
     C --> P[Page objects: text and links]
-    P --> F[ForwardIndex: token counts and normalized vectors]
+    P --> F[ForwardIndex: token counts and TF-IDF vectors]
     F --> R[ReverseIndex: token-to-document TF-IDF scores]
     P --> PR[PageRank: URL-to-rank map]
     Q[User query] --> S[StringProcessing]
@@ -45,9 +45,9 @@ The same processing is used for website text and search queries. This keeps thei
 
 ### Forward index
 
-`ForwardIndex` maps each document URL to its token-frequency map and normalized count vector. Text from the title, headings and paragraphs is concatenated before preprocessing; these fields are not assigned separate weights.
+`ForwardIndex` maps each document URL to its token-frequency map and normalized TF-IDF vector. Text from the title, headings and paragraphs is concatenated before preprocessing; these fields are not assigned separate weights.
 
-The vector is stored sparsely as a map from tokens to nonzero components. Missing tokens have value zero, so the implementation does not allocate an explicit component for every word in the collection. `NormalizedVector` divides the counts by their Euclidean norm. The resulting unit vectors support cosine similarity through a dot product.
+Document vectors are initialized after the inverted index has computed the corpus TF-IDF weights. Each vector is stored sparsely as a map from tokens to nonzero components. Missing tokens have value zero, so the implementation does not allocate an explicit component for every word in the collection. `NormalizedVector` divides the weights by their Euclidean norm. The resulting unit vectors support cosine similarity through a dot product; a zero vector remains empty.
 
 ### Inverted index and TF-IDF
 
@@ -67,9 +67,9 @@ For a query, `Index` gathers the documents containing at least one processed que
 
 ### Cosine similarity
 
-The cosine similarity compares the normalized token-count vector of a query with that of a document. Because both vectors have unit norm, their dot product gives the cosine similarity. The method iterates over query components and looks up the corresponding document components, avoiding a dense vocabulary-sized calculation.
+The cosine similarity compares the normalized TF-IDF vector of a query with that of a document. Because both vectors have unit norm, their dot product gives the cosine similarity. The query vector is prepared once for the candidate set. The method iterates over query components and looks up the corresponding document components, avoiding a dense vocabulary-sized calculation.
 
-These vectors use token counts, not TF-IDF weights. TF-IDF is maintained separately in the inverted index. Repeating one word relative to other words in a query changes the direction of its count vector and can therefore affect cosine similarity.
+Document and query weights use the same corpus IDF values. Query counts are multiplied by IDF before normalization; division by the total query token count would not change the normalized direction. Tokens outside the indexed vocabulary receive zero weight. Repeating one word relative to other words in a query changes the direction of its weighted vector and can therefore affect cosine similarity. Zero-weight vectors have similarity zero.
 
 ### Link-based importance
 
@@ -114,6 +114,6 @@ The application then compares TF-IDF-only and cosine-only rankings on `cheesy3` 
 
 ## 7. Verification and scope
 
-The test suite checks crawling against the course metadata, TF-IDF calculations, cosine similarity, PageRank and retrieval of expected URLs. Additional tests check that equally scored documents are retained and that repeated vector comparisons preserve subsequent results. These checks pass with Java 17.
+The test suite checks crawling against the course metadata, TF-IDF calculations, cosine similarity, PageRank and retrieval of expected URLs. Additional tests check that equally scored documents are retained, repeated vector comparisons preserve subsequent results, and document and query vectors use the correct TF-IDF weights, including zero-weight cases. These checks pass with Java 17.
 
 The architecture is intended for the supplied static intranet. Pages, indexes and ranks are held in memory and rebuilt on startup. It does not execute client-side JavaScript, interpret `robots.txt`, maintain a persistent index or redistribute PageRank from pages without outgoing links. These are relevant considerations for extending the application beyond its course environment.

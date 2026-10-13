@@ -14,7 +14,7 @@ import de.fernunihagen.dbis.anguillasearch.Utils;
 /**
  * A Forward Index organizes tokens by page.
  * Includes methods for creating and reading Forward Indices.
- * Once created, a Forward Index cannot be modified.
+ * Token counts are collected first; TF-IDF vectors are initialized after the Reverse Index.
  */
 class ForwardIndex {
     private final Map<String, ForwardIndexEntry> urlToFiEntry;
@@ -55,15 +55,31 @@ class ForwardIndex {
     }
 
     /**
-     * Retrieves tokens of a specific page and their normalized numbers of occurence.
-     * Numbers of occurence are normalized, so that their euclidean norm equals 1.
+     * Retrieves the normalized TF-IDF vector of a specific page.
+     * Nonzero vectors are normalized to a Euclidean norm of 1.
      * This method is used by Index class to compute Cosine Similarity.
      * 
      * @param url url of the page whose tokens are to be retrieved
-     * @return {@code NormalizedVectorMap} of tokens and their normalized numbers of occurence
+     * @return normalized TF-IDF vector
      */
     NormalizedVector getVectorOf(String url) {
-        return urlToFiEntry.get(url).normalizedCountVector;
+        return urlToFiEntry.get(url).normalizedTfIdfVector;
+    }
+
+    /**
+     * Initializes document vectors from the TF-IDF weights in the Reverse Index.
+     * Called once by Index after both index structures have been created.
+     *
+     * @param reverseIndex the inverted index containing document TF-IDF weights
+     */
+    void initializeTfIdfVectors(ReverseIndex reverseIndex) {
+        for (Entry<String, ForwardIndexEntry> entry : urlToFiEntry.entrySet()) {
+            Map<String, Double> weights = new HashMap<>();
+            for (String token : entry.getValue().tokenToCount.keySet()) {
+                weights.put(token, reverseIndex.getTfIdfsFor(token).get(entry.getKey()));
+            }
+            entry.getValue().normalizedTfIdfVector = new NormalizedVector(weights);
+        }
     }
 
     /**
@@ -104,15 +120,14 @@ class ForwardIndex {
 
     /**
      * One entry of a Forward Index for a single web page.
-     * Includes the page's raw and normalized token counts.
+     * Includes the page's raw token counts and normalized TF-IDF vector.
      */
     private class ForwardIndexEntry {
         private final Map<String, Integer> tokenToCount;
-        private final NormalizedVector normalizedCountVector;
+        private NormalizedVector normalizedTfIdfVector;
 
         private ForwardIndexEntry(Page page) {
             this.tokenToCount = StringProcessing.getTokenCounts(page.rawText());
-            this.normalizedCountVector = new NormalizedVector(this.tokenToCount);
         }
     }
 }

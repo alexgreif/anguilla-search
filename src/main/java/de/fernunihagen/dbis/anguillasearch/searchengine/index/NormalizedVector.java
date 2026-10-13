@@ -6,10 +6,10 @@ import java.util.HashMap;
 
 /**
  * Create normalized vectors from non-normalized ones.
- * Normalized in this context meaning vectors with a euclidean norm of 1.
+ * Nonzero vectors have a Euclidean norm of 1; zero vectors remain empty.
  * Also offers methods to compute dot products between normalized vectors.
  * 
- * This class is used to store normalized vector representations of the tokens on a
+ * This class is used to store normalized TF-IDF vector representations of the tokens on a
  * web page (as part of the Forward Index) or in a query string in a memory efficient way.
  * Since the dot product between two normalized vectors is equivalent to their cosine similarity,
  * this provides an efficient means to calculating the match between a web page and a
@@ -23,7 +23,7 @@ class NormalizedVector {
     private Map<String, Double> map;
 
     /**
-     * Constructs a normalized vector with a euclidean norm of 1.
+     * Constructs a normalized vector; a zero input vector remains empty.
      * Components without entries in the provided map are assumed to equal 0.
      */
     NormalizedVector(Map<String, ? extends Number> map) {
@@ -33,12 +33,18 @@ class NormalizedVector {
             double numDouble = number.doubleValue();
             sum += numDouble*numDouble;
         }
-        Double invNorm = 1 / Math.sqrt(sum);
+        this.map = new HashMap<>();
+        if (sum == 0.0) {
+            return;
+        }
+        double invNorm = 1 / Math.sqrt(sum);
 
         // Put normalized entries
-        this.map = new HashMap<>();
         for (Entry<String, ? extends Number> entry : map.entrySet()) {
-            this.map.put(entry.getKey(), entry.getValue().doubleValue()*invNorm);
+            double value = entry.getValue().doubleValue();
+            if (value != 0.0) {
+                this.map.put(entry.getKey(), value * invNorm);
+            }
         }
     }
 

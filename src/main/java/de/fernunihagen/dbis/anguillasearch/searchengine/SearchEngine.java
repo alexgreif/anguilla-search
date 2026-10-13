@@ -215,6 +215,7 @@ public class SearchEngine {
          */
         private void setUrlsAndRawScores(double[] sums, double[] squareSums, Map<String, Double> urlToTfIdf) {
             
+            Map<String, Double> cosineScores = index.cosineSimilarities(urlToTfIdf.keySet(), query);
             // Loop through pages to get scores and calculate sum and sum of squared values
             int i = 0;
             for (Map.Entry<String, Double> entry : urlToTfIdf.entrySet()) {
@@ -222,7 +223,7 @@ public class SearchEngine {
                 String url = entry.getKey();
                 this.urls[i] = url;
                 rawScores[i][0] = entry.getValue(); // TfIdf
-                rawScores[i][1] = index.cosineSimilarity(url, query); // Cosine Similarity
+                rawScores[i][1] = cosineScores.get(url); // Cosine Similarity
                 rawScores[i][2] = SearchEngine.this.urlToPageRank.get(url); // PageRank
     
                 // Sum and sum of squared values

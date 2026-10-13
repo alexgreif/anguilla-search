@@ -27,6 +27,7 @@ public class Index {
     public Index(Collection<Page> pages) {
         forwardIndex = new ForwardIndex(pages);
         reverseIndex = new ReverseIndex(forwardIndex);
+        forwardIndex.initializeTfIdfVectors(reverseIndex);
     }
 
     /**
@@ -62,15 +63,40 @@ public class Index {
     }
 
     /**
-     * Computes the Cosine Similarity between a web page and a search query.
+     * Computes TF-IDF cosine similarity between a web page and a search query.
+     * Query weights use the same corpus IDF values as document weights.
      * 
      * @param url the URL of the web page to be compared
      * @param query the search query
      * @return Cosine Similarity between page and query
      */
     public double cosineSimilarity(String url, String query) {
+        return queryVector(query).dotThisBased(this.forwardIndex.getVectorOf(url));
+    }
+
+    /**
+     * Computes candidate similarities using one shared, normalized query vector.
+     *
+     * @param urls candidate document URLs
+     * @param query the search query
+     * @return document URLs and their TF-IDF cosine similarities
+     */
+    public Map<String, Double> cosineSimilarities(Collection<String> urls, String query) {
+        NormalizedVector vector = queryVector(query);
+        Map<String, Double> similarities = new HashMap<>();
+        for (String url : urls) {
+            similarities.put(url, vector.dotThisBased(forwardIndex.getVectorOf(url)));
+        }
+        return similarities;
+    }
+
+    private NormalizedVector queryVector(String query) {
         Map<String, Integer> queryTokens = StringProcessing.getTokenCounts(query);
-        NormalizedVector queryVector = new NormalizedVector(queryTokens);
-        return queryVector.dotThisBased(this.forwardIndex.getVectorOf(url));
+        Map<String, Double> queryWeights = new HashMap<>();
+        for (Entry<String, Integer> token : queryTokens.entrySet()) {
+            queryWeights.put(token.getKey(), token.getValue() * reverseIndex.getIdfFor(token.getKey()));
+        }
+        // Dividing query counts by the query length would not change its normalized direction.
+        return new NormalizedVector(queryWeights);
     }
 }
