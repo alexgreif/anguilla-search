@@ -2,7 +2,6 @@ package de.fernunihagen.dbis.anguillasearch.searchengine.index;
 
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.HashMap;
 
 /**
@@ -58,41 +57,6 @@ class NormalizedVector {
             sum += entry.getValue() * other.get(entry.getKey());
         }
         return sum;
-    }
-
-    /**
-     * Computes the dot product between this and other vector.
-     * This implementation of the dot product is best to use if
-     * both vectors have quite a few non-zero entries but their intersection is rather small.
-     * The dot product between two normalized vectors is equivalent to their cosine similarity.
-     * 
-     * @param other vector with whom dot product is to be computed
-     * @return dot product between this and other
-     */
-    double dotSymmetrical(NormalizedVector other) {
-        Set<String> nonZeroIndices = this.map.keySet();
-        nonZeroIndices.retainAll(other.map.keySet());
-        double sum = 0;
-        for (String i : nonZeroIndices) {
-            sum += this.get(i) * other.get(i);
-        }
-        return sum;
-    }
-
-    /**
-     * Computes the dot product between this and other vector.
-     * This implementation of the dot product is best to use if
-     * one vector has fewer non-zero values than the other, but it's unknown which one.
-     * The dot product between two normalized vectors is equivalent to their cosine similarity.
-     * 
-     * @param other vector with whom dot product is to be computed
-     * @return dot product between this and other
-     */
-    double dotAsymmetrical(NormalizedVector other) {
-        if (this.map.size() < other.map.size()) {
-            return this.dotThisBased(other);
-        }
-        return other.dotThisBased(this);
     }
 
     /**
