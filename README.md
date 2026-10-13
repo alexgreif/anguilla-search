@@ -1,12 +1,10 @@
 # Anguilla Search
 
-Anguilla Search is a web search engine. If the user enters a search query, Anguilla Search will provide them with a list of web pages that best match their query. Anguilla Search uses a simple command line based user interface, that is easy to start up and operate.
+Anguilla Search is a Java search engine developed for the Programmierpraktikum at FernUniversität in Hagen in winter semester 2024/25. It crawls the course's static intranet, indexes website content and returns ranked results through a command-line interface.
 
-**Features**
+The implementation combines text preprocessing (tokenization, lemmatization and stopword removal), forward and inverted indexes, TF-IDF, cosine similarity and PageRank. The course supplied the development environment, Maven configuration and test intranet.
 
-- Find web pages that match a given search query.
-- Receive the search results ordered by fit, with the best fitting pages right at the top of the list.
-- Easy to start and operate using a simple command line interface.
+[Course documentation (PDF)](Dokumentation_Greif_Alexander_4214242.pdf)
 
 
 ## Contents
@@ -28,18 +26,21 @@ Anguilla Search is a web search engine. If the user enters a search query, Angui
     - [Execute the JAR in the Development Environment](#execute-the-jar-in-the-development-environment)
     - [Execute the JAR using the Docker Image](#execute-the-jar-using-the-docker-image)
   - [List of pre-installed VSCode/Codium Extensions](#list-of-pre-installed-vscodecodium-extensions)
+  - [Subsequent updates](#subsequent-updates)
 
 
 ## Installation
 
-There are two ways main ways to start Anguilla Search:
+The supplied environment requires Git, Docker and Docker Compose and includes Java 17 and Maven. Follow the [development environment setup](#installation-dependencies) below to clone the repository and start the development container together with the test intranet.
 
-1. In the Development Environment
-2. Using the Docker Image
-   
-In any case, the program is started by executing the JAR. Both approaches are described in more detail in the chapter [Execute the JAR](#execute-the-jar).
+Inside the development container, open a terminal in `/home/vscode/workspace` and build and run the application:
 
-The JAR can be found on the project's [Release Page](https://git.propra-prod1.fernuni-hagen.de/propra/ws24-25/q4214242/-/releases). However, it must be noted that the JAR alone cannot be run successfully without it's Dependencies that are found in the project's *target/libs* folder.
+```bash
+mvn clean package
+java -jar target/anguillasearch-1.0.0-SNAPSHOT.jar
+```
+
+Keep the intranet containers running during the build and execution: several tests and the application use the course websites. The JAR also requires the dependencies in `target/libs`, which Maven creates during the build.
 
 ## Usage
 
@@ -49,12 +50,14 @@ Once the JAR is executed, Anguilla Search will take a few seconds to start up. T
 
 After you've been provided your search results, Anguilla Search will immediately prompt you to enter your next query. Once you're done searching, simply enter *exit* and the program will be terminated.
 
-Here is an example of how Anguilla Searched can be used:
+Here is an example of how Anguilla Search can be used:
 
 <img src="figures/SampleUsage.png" alt="Sample usage of Anguilla Search" width="600"/>
 
 
 # Anguilla Search (Dev)
+
+The following instructions describe the development environment supplied for the course. Repository addresses and folder names have been updated for this GitHub repository. References to GitLab CI/CD, releases and the application image describe the original university setup; they are not provided by this GitHub repository.
 
 This is a complete programming environment with minimal dependencies. VSCode is provided as a web application ([Coder Server](https://coder.com)) with all the necessary extensions.
  In addition, a [Devcontainers](https://code.visualstudio.com/docs/devcontainers/containers) configuration is included, which also provides a ready to use environment in VSCode with just a few clicks so that you can start programming immediately.
@@ -92,8 +95,7 @@ At least you need the following dependencies:
 Clone this git repository
 
 ```bash
-git clone https://git.propra-prod1.fernuni-hagen.de/propra/ws24-25/q4214242.git \
-q4214242.git
+git clone https://github.com/alexgreif/anguilla-search.git
 ```
 
 
@@ -105,7 +107,7 @@ q4214242.git
 Navigate into the clone repository
 
 ```bash
-cd q4214242.git
+cd anguilla-search
 ```
 
 Start the docker environment and the intranet
@@ -118,7 +120,7 @@ docker compose -f docker-compose-dev.yml -f docker-compose-intranet.yml up
 Open the following url in a web browser: [http://127.0.0.1:8080](http://127.0.0.1:8080)
 
 
-Start programming :) ...
+Continue with the [build and run commands](#installation).
 
 
 ## Reach the Intranet from Host
@@ -171,7 +173,7 @@ Here the problem is, that the *devcontainers* extension is not able to install t
 
 ## Usage (local VSCode or VSCodium)
 
-1. Open the cloned *q4214242.git* folder with VSCode or VSCodium. Now Code prompt you to *Reopen in Container*. Note that the first start may take some time, as the necessary docker images must be loaded and the extensions installed within the *devcontainers* environment. You can also open the *devcontainers* environment by opening the Command Palette (*Ctrl + Shift + P*) and executing `Dev Containers: Reopen in Container`.
+1. Open the cloned *anguilla-search* folder with VSCode or VSCodium. Now Code prompt you to *Reopen in Container*. Note that the first start may take some time, as the necessary docker images must be loaded and the extensions installed within the *devcontainers* environment. You can also open the *devcontainers* environment by opening the Command Palette (*Ctrl + Shift + P*) and executing `Dev Containers: Reopen in Container`.
 
 2. To go back to the local environment use the `Reopen Folder Locally` command.
 
@@ -194,7 +196,7 @@ mvn clean site
 
 > *NOTE:* If you are using the locally installed VSCode or VSCodium, you must first *Reopen in container* if you have not already done so.
 
-The generated project pages including the *Project Reports* can be found under `q4214242.git/target/site/`.
+The generated project pages including the *Project Reports* can be found under `anguilla-search/target/site/`.
 
 The GitLab CI/CD pipeline will also generate the *Project Reports* on every commit and provide them as a GitLab Page. 
 The link to your report page can be found on the right-hand side of your GitLab project page:
@@ -205,7 +207,7 @@ The link to your report page can be found on the right-hand side of your GitLab 
 
 ## Execute the JAR
 
-It should be ensured that the JAR is functional. This can be done directly in the development environment and also with the docker container created by the CI/CD pipeline.
+The application can be built and run in the development environment as described below. The alternative application image was produced by the original university GitLab CI/CD pipeline.
 
 ### Execute the JAR in the Development Environment
 
@@ -216,7 +218,7 @@ mvn clean package
 
 > *NOTE:* To skip the test during the build, add `-Dmaven.test.skip`
 
-Afterwards you can execute the jar
+With the intranet containers still running, execute the JAR from the same folder:
 ```bash
 java -jar ./target/anguillasearch-1.0.0-SNAPSHOT.jar
 ```
@@ -224,7 +226,7 @@ java -jar ./target/anguillasearch-1.0.0-SNAPSHOT.jar
 
 ### Execute the JAR using the Docker Image
 
-To run the docker image created by the CI/CD pipeline.
+The following instructions are retained from the university GitLab setup and require access to its application registry. The original [release page](https://git.propra-prod1.fernuni-hagen.de/propra/ws24-25/q4214242/-/releases) belongs to that setup. For this GitHub repository, use the source build described above.
 
 > *NOTE:* The following commands must be executed on your host.
 
@@ -241,6 +243,7 @@ To run the docker image created by the CI/CD pipeline.
 2. To pull the docker image from your container registry, you must first log in.
     ```bash
     docker login registry.propra-prod1.fernuni-hagen.de
+    ```
 3. Pull the latest image from the registry.
     ```bash
     docker image pull registry.propra-prod1.fernuni-hagen.de/propra/ws24-25/q4214242/anguilla-search:latest
@@ -278,3 +281,7 @@ To run the docker image created by the CI/CD pipeline.
 | *Markdownlint* | Markdown linting and style checking for Visual Studio Code. |
 | *Markdown Preview Github Styling* | Changes VS Code's built-in markdown preview to match Github's style. |
 | *Meld Diff* | Use meld (or other tools like WinMerge, Beyond Compare, ...) to compare files, folders, clipboard or git changes from visual studio code directly. |
+
+## Subsequent updates
+
+This repository has been updated after the course, including documentation and targeted bug fixes. Its current state therefore differs from the original submission.
