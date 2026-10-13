@@ -292,12 +292,13 @@ public class SearchEngine {
         }
 
         /**
-         * Compares two search entries by total score.
+         * Compares search entries by descending score, then by URL to retain tied pages.
          * This method helps sort search results by total score.
          */
         @Override
         public int compareTo(final SearchResultEntry other) {
-            return Double.compare(other.score, this.score);
+            int scoreComparison = Double.compare(other.score, this.score);
+            return scoreComparison != 0 ? scoreComparison : this.url.compareTo(other.url);
         }
     }
 }
