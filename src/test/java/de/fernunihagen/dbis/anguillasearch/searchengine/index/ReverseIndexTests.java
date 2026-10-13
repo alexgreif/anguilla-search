@@ -36,7 +36,6 @@ class ReverseIndexTests {
         testPages = Utils.parseAllJSONFiles(java.util.Optional.of("src/test/resources/tf-idf/pages"));
         correctReverseIdex = Utils.parseJSONFile("src/test/resources/tf-idf/index.json");
 
-        // Add your code here to create your reverse index
         pages = new ArrayList<>();
         for (JsonObject pageJsonObject : testPages) {
             String url = pageJsonObject.get("url").getAsString();
@@ -76,7 +75,6 @@ class ReverseIndexTests {
                 Double tfidf = pageEntry.getValue().getAsDouble();
 
 
-                // Add your code here to compare the TF-IDF values of your reverse index with the correct values
 
 
                 // Check if the reverse index contains the token
@@ -90,7 +88,6 @@ class ReverseIndexTests {
                 // Check if the TF-IDF value is correct
                 assertTrue(Math.abs(tfidf - indexTfidf) < 0.0001);
 
-                // Remove the following line after adding your code
 
             }
         }

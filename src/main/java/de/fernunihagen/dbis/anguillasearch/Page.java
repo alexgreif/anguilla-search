@@ -105,49 +105,4 @@ public class Page {
         return this.outgoingLinks.keySet();
     }
 
-    /**
-     * Returns URLs of web pages that link to this Page with the number of those links.
-     * 
-     * @return {@code Map} from URL to count of links
-     */
-    public Map<String, Integer> getIncomingLinks() {
-        return this.incomingLinks;
-    }
-
-    /**
-     * Returns URLs of web pages that this Page links to with the number of those links.
-     * 
-     * @return {@code Map} from URL to count of links
-     */
-    public Map<String, Integer> getOutgoingLinks() {
-        return this.outgoingLinks;
-    }
-
-    /**
-     * Retrieves the web page's title.
-     * 
-     * @return the web page's title
-     */
-    public String getTitle() {
-        return this.title;
-    }
-
-    /**
-     * Retrieves the web page's headings.
-     * 
-     * @return the web page's headings
-     */
-    public String getHeadings() {
-        return this.headings;
-    }
-
-    /**
-     * Retrieves the web page's paragraphs.
-     * 
-     * @return the web page's paragraphs
-     */
-    public String getParagraphs() {
-        return this.paragraphs;
-    }
 }
-

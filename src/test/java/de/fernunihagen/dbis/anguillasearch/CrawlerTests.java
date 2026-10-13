@@ -34,7 +34,6 @@ class CrawlerTests {
             // Extract the seed URLs from the JSON file
             String[] seedUrls = new Gson().fromJson(testJSON.get("Seed-URLs"), String[].class);
             
-            // Add your code here to get the number of crawled pages
 
             // Get the crawled pages
             Crawler crawler = new Crawler(seedUrls);
@@ -53,7 +52,6 @@ class CrawlerTests {
             // Extract the seed URLs from the JSON file
             String[] seedUrls = new Gson().fromJson(testJSON.get("Seed-URLs"), String[].class);
             
-            // Add your code here to get the number of links
 
             // Get the number of links
             Crawler crawler = new Crawler(seedUrls);

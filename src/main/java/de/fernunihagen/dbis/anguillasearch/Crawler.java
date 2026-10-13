@@ -79,22 +79,6 @@ public class Crawler {
     }
 
     /**
-     * Retrieves all links that have been found in crawled pages.
-     * This includes links to pages that have not been crawled.
-     * 
-     * @return List of Links on crawled pages
-     */
-    List<Link> getAllOutgoingLinks() {
-        List<Link> links = new ArrayList<>();
-        for (Page source : this.getPages()) {
-            for (String target : source.outgoingLinksSet()) {
-                links.add(new Link(source.url, target));
-            }
-        }
-        return links;
-    } 
-
-    /**
      * Retrieves all links between crawled pages.
      * Does not include links to pages that have not been crawled.
      * This method is used for constructing the Graph representation of links between pages.

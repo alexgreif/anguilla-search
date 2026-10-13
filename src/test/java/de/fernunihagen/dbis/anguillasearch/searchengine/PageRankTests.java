@@ -43,7 +43,6 @@ class PageRankTests {
             String[] seedUrls = new Gson().fromJson(testJSON.get("Seed-URLs"), String[].class);
             
  
-            // Add your code here to calculate the page rank
             Crawler crawler = new Crawler(seedUrls);
             crawler.crawl();
             System.out.println(LocalDateTime.now() + " crawled");
@@ -76,7 +75,6 @@ class PageRankTests {
             assertTrue(Math.abs(pageRankSum - 1.0) < 0.001);
         }
 
-        // Remove the following line after adding your code!
     }
     
     @Test
@@ -88,7 +86,6 @@ class PageRankTests {
             int numPages = new Gson().fromJson(testJSON.get("Num-Websites"), Integer.class);
             
 
-            // Add your code here to calculate the page rank
 
             // Get the page rank of the seed URLs
             for (String seedUrl : seedUrls) {
@@ -108,7 +105,6 @@ class PageRankTests {
                 
                 assertTrue(Math.abs(seedPageRank - rankSource) < 0.001);
 
-                // Remove the following line after adding your code!
             }
         }
     }
@@ -140,7 +136,6 @@ class PageRankTests {
             // Test
             assertTrue(Math.abs(pageRankScore - correctPageRank) < 0.001);
 
-            // Remove the following line after adding your code!
             
         }
     }
