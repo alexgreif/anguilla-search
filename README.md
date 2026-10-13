@@ -282,4 +282,4 @@ This alternative requires access to the university application registry. Otherwi
 
 ## Subsequent updates
 
-This repository has been updated after the course, including documentation and targeted bug fixes. Its current state therefore differs from the original submission.
+This repository has been updated after the course with assistance from generative AI, including documentation and targeted bug fixes. Its current state therefore differs from the original submission.
