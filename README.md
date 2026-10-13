@@ -4,7 +4,7 @@ Anguilla Search is a Java search engine developed for the Programmierpraktikum a
 
 The implementation combines text preprocessing (tokenization, lemmatization and stopword removal), forward and inverted indexes, TF-IDF, cosine similarity and PageRank. The course supplied the development environment, Maven configuration and test intranet.
 
-[Course documentation (PDF)](Dokumentation_Greif_Alexander_4214242.pdf)
+[Architecture](docs/architecture.md) | [Course documentation (PDF)](Dokumentation_Greif_Alexander_4214242.pdf)
 
 
 ## Contents
