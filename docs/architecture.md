@@ -1,59 +1,72 @@
-# Anguilla Search: Architecture
+# Anguilla Search
 
-Anguilla Search is a Java search engine developed for the Programmierpraktikum at FernUniversität in Hagen in winter semester 2024/25. It searches a static intranet supplied for the course. Its main components collect website content, construct searchable indexes, compute link-based importance and rank results for queries entered through a command-line interface.
+Programmierpraktikum WS 2024/25, FernUniversität in Hagen
 
-## 1. Overview
+Alexander Greif
 
-The application separates preparation from searching. Crawling, document indexing and PageRank computation are performed before the interactive search loop. The resulting data structures remain in memory and are reused for subsequent queries.
+## Introduction
+
+The assignments of this Programmierpraktikum constitute a sequence of steps to be followed for creating the Anguilla Search search engine. They also act as guidelines for the software design of the search engine. Figure 1 shows the structure of my implementation that resulted from following these guidelines. The diagram depicts the main components of my software, their main tasks and the interaction between them. In this document, I describe how these components work individually and together and explain their design decisions.
 
 ```mermaid
-flowchart TD
-    M[Intranet metadata: seed URLs] --> C[Crawler]
-    W[Static intranet websites] --> C
-    C --> P[Page objects: text and links]
-    P --> F[ForwardIndex: token counts and TF-IDF vectors]
-    F --> R[ReverseIndex: token-to-document TF-IDF scores]
-    P --> PR[PageRank: URL-to-rank map]
-    Q[User query] --> S[StringProcessing]
-    S --> I[Index: candidates and text similarity]
-    F --> I
-    R --> I
-    I --> E[SearchEngine: combine and sort scores]
-    PR --> E
-    E --> O[Command-line results]
+flowchart TB
+    A["<b>AnguillaSearch</b><br/>Handles user interaction<br/>Organizes workflow"]
+    Seeds["Seed URLs"]
+    C["<b>Crawler</b><br/>Extracts website content into Page objects<br/>Finds more pages using outgoing links"]
+    subgraph Pages["Collection of pages"]
+        P["<b>Page</b><br/>Holds relevant information about a single page"]
+    end
+    subgraph Engine["Search engine"]
+        direction TB
+        E["<b>SearchEngine</b><br/>Combines index scores with PageRank<br/>Formats the results table"]
+        I["<b>Index</b><br/>Finds pages matching the query<br/>Assesses their fit"]
+        PR["<b>PageRank</b><br/>Computes link-based importance"]
+        I --> E
+        PR --> E
+    end
+    subgraph Results["Sorted set of search results"]
+        R["<b>SearchResultEntry</b><br/>Page URL and search scores<br/>Sorted by total score, then URL"]
+    end
+    A -->|provides| Seeds
+    A -->|initializes| C
+    Seeds -->|feeds| C
+    C -->|creates| Pages
+    Pages -->|feeds| Engine
+    A -->|starts and queries| Engine
+    Engine -->|creates| Results
 ```
 
-`AnguillaSearch` coordinates the application. `Crawler` retrieves pages, while `Page` stores their contents and links. The `Index` class provides access to the forward and inverted indexes. `SearchEngine` combines the index with PageRank and presents ranked results. Text preprocessing and vector operations are implemented separately so that the same transformations can be applied to documents and queries.
+*Figure 1. Main components of my Anguilla Search implementation. Bold text represents classes.*
 
-## 2. Crawling and page representation
+## Components
 
-The crawler begins with seed URLs. A FIFO queue stores URLs awaiting retrieval, and a map associates each successfully crawled URL with a `Page`. Before adding a discovered link to the queue, the crawler checks whether its target has already been retrieved or is already waiting. This prevents cycles in the link graph from repeatedly scheduling the same discovered page.
+### The Page Data Structure
 
-JSoup retrieves and parses each page. The crawler extracts the title, headings, paragraphs and outgoing links. Relative links are resolved against the page URL. Failed requests are logged, and processing continues with the remaining queue. The default crawl limit is 10,000 pages; a separate entry point accepts a smaller limit for the graph example.
+I will start with the Page data structure since it is central to a lot of the other classes' functionality and very straightforward. A Page contains a title, headings, paragraphs, outgoing links and incoming links. The first four are initialized during construction. Incoming links are added individually to an existing instance once the linked pages have been crawled. A Page also has methods to retrieve the information it stores.
 
-A `Page` holds the text fields as strings and uses maps for incoming and outgoing links. Link maps associate a URL with an occurrence count, allowing callers to distinguish the number of different linked pages from the number of link occurrences. The page URL serves as its identifier throughout the application, connecting the text index, link graph and search results without a separate document-ID mapping.
+The page URL identifies the page throughout the application. Incoming and outgoing links are stored as maps from URLs to occurrence counts. This allows the program to distinguish the number of different linked pages from the number of link occurrences. The title, headings and paragraphs can be retrieved together as a single string for text processing.
 
-Incoming links are populated after crawling. At that point, the crawler can identify which outgoing links point to pages in the retrieved collection. This second pass separates HTML extraction from construction of the internal link graph.
+### The Crawler
 
-## 3. Text preprocessing and indexes
+A central component of the crawler is its queue of URLs of pages to be crawled. The queue is initialized with the provided seed URLs. The first item of the queue is retrieved, and the contents of the web page are parsed into a Page object, which is saved in a URL-to-Page map for easy access. Outgoing links that have not yet been parsed and are not in the queue are then added to it. Once the queue is empty, the crawler adds incoming links between the pages it has collected.
 
-### Shared preprocessing
+The queue is processed in first-in, first-out order. Checking both the map of collected pages and the queue prevents links forming a cycle from repeatedly scheduling the same discovered page. Incoming links are added in a separate pass because they depend on the outgoing links collected from other pages.
 
-`StringProcessing` uses the CoreNLP pipeline for tokenization, sentence splitting, part-of-speech tagging and lemmatization. The resulting lemmas are converted to lowercase, and only those containing at least one ASCII letter are retained. Stopwords are then removed using the list in `src/main/resources/stopwords.txt`.
+JSoup retrieves the HTML and extracts the title, headings, paragraphs and links. Relative links are resolved against the page URL. If a page cannot be retrieved, the failure is logged and the crawler continues. The default limit is 10,000 pages; a smaller limit is used for the network visualization.
 
-The same processing is used for website text and search queries. This keeps their token representations consistent: capitalization and inflected word forms do not require separate lookup rules. A frequency map records the number of occurrences of each remaining token.
+### Text Processing
 
-### Forward index
+`StringProcessing` prepares both website text and search queries. It uses CoreNLP for tokenization, sentence splitting, part-of-speech tagging and lemmatization. Lemmas are converted to lowercase, and those without an ASCII letter are discarded. The stopwords listed in `src/main/resources/stopwords.txt` are then removed.
 
-`ForwardIndex` maps each document URL to its token-frequency map and normalized TF-IDF vector. Text from the title, headings and paragraphs is concatenated before preprocessing; these fields are not assigned separate weights.
+Using the same processing for documents and queries gives them a shared representation. For example, capitalization and inflected forms do not need separate lookup rules. The remaining tokens are counted and stored in a token-to-count map.
 
-Document vectors are initialized after the inverted index has computed the corpus TF-IDF weights. Each vector is stored sparsely as a map from tokens to nonzero components. Missing tokens have value zero, so the implementation does not allocate an explicit component for every word in the collection. `NormalizedVector` divides the weights by their Euclidean norm. The resulting unit vectors support cosine similarity through a dot product; a zero vector remains empty.
+### The Forward and Reverse Indexes
 
-### Inverted index and TF-IDF
+The forward index organizes text by document: `ForwardIndex` maps each URL to its token counts and normalized TF-IDF vector. The title, headings and paragraphs are processed together, without separate weights for these fields.
 
-`ReverseIndex` reverses the direction of lookup: each token maps to the URLs containing it and their TF-IDF weights. This makes it possible to find matching documents without scanning every document's text.
+The reverse index organizes documents by token: `ReverseIndex` maps each token to the URLs containing it and their TF-IDF values. It is built from the token counts in the forward index. This structure allows a query to retrieve matching pages without scanning every document's text.
 
-For token `t` in document `d`, the implementation computes:
+For token `t` in document `d`, the weights are calculated as follows:
 
 ```text
 TF(t, d)     = count(t, d) / total token count(d)
@@ -61,59 +74,55 @@ IDF(t)       = ln(number of documents / documents containing t)
 TF-IDF(t, d) = TF(t, d) * IDF(t)
 ```
 
-For a query, `Index` gathers the documents containing at least one processed query token and sums their TF-IDF weights across the distinct query tokens. Repeating a token does not increase this TF-IDF sum. A token present in every indexed document has an IDF of zero, but the documents containing it are still included as candidates.
+TF expresses a token's frequency relative to document length. IDF gives less weight to tokens appearing in many documents. Once the reverse index has calculated these weights, the forward index uses them to initialize the document vectors.
 
-## 4. Text similarity and PageRank
+The simple TF-IDF search retrieves pages containing at least one query token and sums their TF-IDF values across the distinct query tokens. Repeating a word does not increase this sum. A token present in every document has IDF zero, but its pages are still included as candidates.
 
-### Cosine similarity
+### Vector Representation and Cosine Similarity
 
-The cosine similarity compares the normalized TF-IDF vector of a query with that of a document. Because both vectors have unit norm, their dot product gives the cosine similarity. The query vector is prepared once for the candidate set. The method iterates over query components and looks up the corresponding document components, avoiding a dense vocabulary-sized calculation.
+`NormalizedVector` represents a vector as a map from tokens to nonzero components. A missing token has value zero. This sparse representation avoids allocating an entry for every token in the vocabulary for every document.
 
-Document and query weights use the same corpus IDF values. Query counts are multiplied by IDF before normalization; division by the total query token count would not change the normalized direction. Tokens outside the indexed vocabulary receive zero weight. Repeating one word relative to other words in a query changes the direction of its weighted vector and can therefore affect cosine similarity. Zero-weight vectors have similarity zero.
+Document vectors contain TF-IDF weights and are normalized to a Euclidean norm of one. Query vectors use the same corpus IDF values, multiplied by the query token counts, and are normalized in the same way. Dividing query counts by the query length would scale every component equally and would therefore not change the normalized vector.
 
-### Link-based importance
+The cosine similarity of two nonzero unit vectors is their dot product. The implementation iterates over query components and looks up the corresponding document components. Document vectors are prepared during indexing, and the query vector is prepared once for the candidate set. Repeated searches therefore reuse the document vectors.
 
-`PageRank` computes one rank per URL from the internal link graph. Each iteration derives new ranks from the previous iteration's values. A page's contribution is divided by its number of distinct outgoing links, and the contributions from incoming links are summed.
+Repeating one query token relative to the others changes its weight and can influence the similarity. Tokens outside the vocabulary have weight zero. If all weights are zero, the vector remains empty and its similarity is defined as zero.
 
-The damped version combines these contributions with a uniform rank source:
+### PageRank
+
+`PageRank` uses incoming and outgoing links to calculate one rank for each page. Ranks are initialized uniformly. In each iteration, a page receives contributions from pages linking to it; each contribution is divided by the source page's number of distinct outgoing links.
+
+The damped version adds a uniform rank source:
 
 ```text
 new rank(d) = damping * incoming contributions(d)
               + (1 - damping) / number of pages
 ```
 
-The search engine uses a damping factor of 0.85. Iteration stops when the sum of absolute rank changes falls below the configured tolerance, or when the maximum iteration count is reached. The algorithm also accepts a damping factor of 1 for the course comparison with undamped PageRank.
+The search engine uses a damping factor of 0.85. The algorithm stops when the sum of absolute rank changes falls below the configured tolerance, or when the maximum iteration count is reached. A damping factor of one is also supported for comparison with the undamped version.
 
-PageRank is computed once when the search engine is created. It provides a query-independent measure of link-based importance, complementing the query-dependent text similarity.
+PageRank is calculated once when the search engine is initialized. Its link-based importance is independent of the query and complements the text-based similarity.
 
-## 5. Ranking and query execution
+### The Search Engine
 
-For each query, the inverted index supplies the candidate URLs. `SearchEngine` obtains three values for each candidate: the query's TF-IDF sum, cosine similarity and PageRank.
+`SearchEngine` combines the index and PageRank. For each query, it retrieves candidate URLs from the reverse index and obtains their TF-IDF sums, cosine similarities and PageRank values.
 
-Each metric is standardized within that query's candidate set by subtracting its mean and dividing by its population standard deviation. This puts metrics with different numerical ranges on a comparable scale. A metric with zero standard deviation contributes zero after centering. The combined score is a weighted average of the standardized metrics.
+The three metrics have different numerical ranges. The program standardizes each metric within the candidate set by subtracting its mean and dividing by its population standard deviation. A constant metric contributes zero after centering. The combined score is a weighted average of these standardized values.
 
-The default weights are:
+The default weights are zero for the separate TF-IDF sum and one each for cosine similarity and PageRank. The default ranking therefore combines TF-IDF cosine similarity with link-based importance. The TF-IDF sum remains available in the output and through the alternative search entry point, which accepts explicit metric weights.
 
-| Metric | Weight |
-| --- | ---: |
-| TF-IDF sum | 0 |
-| Cosine similarity | 1 |
-| PageRank | 1 |
+Results are stored in a `TreeSet`, sorted by descending total score and then by URL when scores are equal. The URL comparison keeps different pages with identical scores in the result set. The displayed table contains the URL, total score and all three individual metrics. Total scores are relative to the query's candidate set and can be negative after standardization.
 
-The default ranking therefore gives equal weight to standardized cosine similarity and PageRank. TF-IDF remains part of candidate retrieval and the displayed results. The alternative search entry point accepts weights explicitly, allowing the startup comparison to isolate TF-IDF and cosine similarity.
+### Application Workflow and Visualization
 
-A `TreeSet` stores results in descending score order. When scores are identical, the URL determines the order, ensuring that different documents remain separate results. The output includes the URL, combined score and all three underlying metrics. Combined scores are relative to the candidate set and are not probabilities; negative scores are possible after standardization.
+`AnguillaSearch` coordinates startup and the command-line interface. Before the interactive loop, it creates a graph of a 16-page crawl of `cheesy4` and saves it to `figures/net-graph.png`. `NetworkGraph` uses JGraphX to draw pages as vertices and links as directed edges in a circular layout.
 
-The command-line loop reuses the prepared indexes and ranks until the user enters `exit`. Unknown terms and empty queries produce an empty result table.
+The application then compares TF-IDF-only and cosine-only searches on `cheesy3` for three predefined queries. For the interactive search, seed URLs are read from the metadata files for `cheesy1`, `cheesy2`, `cheesy3`, `cheesy4` and `cheesy6`. The crawler collects the pages, and the search engine prepares the indexes and ranks.
 
-## 6. Startup and graph visualization
+The application accepts further queries until the user enters `exit`. Pages, indexes and PageRank values remain in memory between queries. Empty queries and unknown terms produce an empty result table. Start and usage instructions are provided in the [README](../README.md).
 
-Before entering the interactive loop, `AnguillaSearch` creates a graph of a 16-page crawl of `cheesy4` and saves it to `figures/net-graph.png`. `NetworkGraph` uses JGraphX to represent pages as vertices and links between crawled pages as directed edges, arranged in a circular layout.
+## Verification and Scope
 
-The application then compares TF-IDF-only and cosine-only rankings on `cheesy3` for three predefined queries. Finally, it collects seed URLs from the metadata for `cheesy1`, `cheesy2`, `cheesy3`, `cheesy4` and `cheesy6`, crawls these networks and initializes the interactive search engine. These preliminary graph and comparison steps explain why output appears before the first query prompt.
+Tests check crawling against the course metadata, TF-IDF calculations, cosine similarity, PageRank and retrieval of expected URLs. Additional cases check equal-score results, repeated vector comparisons, TF-IDF weighting of documents and queries, and zero-weight vectors.
 
-## 7. Verification and scope
-
-The test suite checks crawling against the course metadata, TF-IDF calculations, cosine similarity, PageRank and retrieval of expected URLs. Additional tests check that equally scored documents are retained, repeated vector comparisons preserve subsequent results, and document and query vectors use the correct TF-IDF weights, including zero-weight cases. These checks pass with Java 17.
-
-The architecture is intended for the supplied static intranet. Pages, indexes and ranks are held in memory and rebuilt on startup. It does not execute client-side JavaScript, interpret `robots.txt`, maintain a persistent index or redistribute PageRank from pages without outgoing links. These are relevant considerations for extending the application beyond its course environment.
+The implementation is designed for the supplied static intranet. It rebuilds its in-memory indexes on startup. Dynamic JavaScript content, a persistent index and handling of pages without outgoing links would require additional work for a broader web-search application.
