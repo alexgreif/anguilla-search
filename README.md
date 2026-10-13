@@ -57,8 +57,6 @@ Here is an example of how Anguilla Search can be used:
 
 # Anguilla Search (Dev)
 
-The following instructions describe the development environment supplied for the course. Repository addresses and folder names have been updated for this GitHub repository. References to GitLab CI/CD, releases and the application image describe the original university setup; they are not provided by this GitHub repository.
-
 This is a complete programming environment with minimal dependencies. VSCode is provided as a web application ([Coder Server](https://coder.com)) with all the necessary extensions.
  In addition, a [Devcontainers](https://code.visualstudio.com/docs/devcontainers/containers) configuration is included, which also provides a ready to use environment in VSCode with just a few clicks so that you can start programming immediately.
 
@@ -207,7 +205,7 @@ The link to your report page can be found on the right-hand side of your GitLab 
 
 ## Execute the JAR
 
-The application can be built and run in the development environment as described below. The alternative application image was produced by the original university GitLab CI/CD pipeline.
+Build and run the application in the development environment as described below.
 
 ### Execute the JAR in the Development Environment
 
@@ -226,7 +224,7 @@ java -jar ./target/anguillasearch-1.0.0-SNAPSHOT.jar
 
 ### Execute the JAR using the Docker Image
 
-The following instructions are retained from the university GitLab setup and require access to its application registry. The original [release page](https://git.propra-prod1.fernuni-hagen.de/propra/ws24-25/q4214242/-/releases) belongs to that setup. For this GitHub repository, use the source build described above.
+This alternative requires access to the university application registry. Otherwise, build from source as described above.
 
 > *NOTE:* The following commands must be executed on your host.
 
