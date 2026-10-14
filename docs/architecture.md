@@ -44,7 +44,7 @@ flowchart TB
 
 I will start with the Page data structure since it is central to a lot of the other classes' functionality and very straightforward. A Page contains a title, headings, paragraphs, outgoing links and incoming links. The first four are initialized during construction. Incoming links are added individually to an existing instance once the linked pages have been crawled. A Page also has methods to retrieve the information it stores.
 
-The page URL identifies the page throughout the application. Incoming and outgoing links are stored as maps from URLs to occurrence counts. This allows the program to distinguish the number of different linked pages from the number of link occurrences. The title, headings and paragraphs can be retrieved together as a single string for text processing.
+The page URL identifies the page throughout the application. Outgoing links are stored with their occurrence counts; incoming links record each source page once. The title, headings and paragraphs can be retrieved together as a single string for text processing.
 
 ### The Crawler
 
@@ -52,7 +52,7 @@ A central component of the crawler is its queue of URLs of pages to be crawled. 
 
 The queue is processed in first-in, first-out order. Checking both the map of collected pages and the queue prevents links forming a cycle from repeatedly scheduling the same discovered page. Incoming links are added in a separate pass because they depend on the outgoing links collected from other pages.
 
-JSoup retrieves the HTML and extracts the title, headings, paragraphs and links. Relative links are resolved against the page URL. If a page cannot be retrieved, the failure is logged and the crawler continues. The default limit is 10,000 pages; a smaller limit is used for the network visualization.
+JSoup retrieves the HTML and extracts the title, headings, paragraphs and links. Relative links are resolved against the page URL. If a page cannot be retrieved, the failure is logged and the crawler continues. The default limit is 10,000 pages, unless more seed URLs are supplied; a smaller limit is used for the network visualization.
 
 ### Text Processing
 
