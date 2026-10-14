@@ -26,7 +26,7 @@ The implementation combines text preprocessing (tokenization, lemmatization and 
     - [Execute the JAR in the Development Environment](#execute-the-jar-in-the-development-environment)
     - [Execute the JAR using the Docker Image](#execute-the-jar-using-the-docker-image)
   - [List of pre-installed VSCode/Codium Extensions](#list-of-pre-installed-vscodecodium-extensions)
-  - [Subsequent updates](#subsequent-updates)
+  - [Maintenance and AI Disclosure](#maintenance-and-ai-disclosure)
 
 
 ## Installation
@@ -280,6 +280,6 @@ This alternative requires access to the university application registry. Otherwi
 | *Markdown Preview Github Styling* | Changes VS Code's built-in markdown preview to match Github's style. |
 | *Meld Diff* | Use meld (or other tools like WinMerge, Beyond Compare, ...) to compare files, folders, clipboard or git changes from visual studio code directly. |
 
-## Subsequent updates
+## Maintenance and AI Disclosure
 
 This repository has been updated after the course with assistance from generative AI, including documentation and targeted bug fixes. Its current state therefore differs from the original submission.

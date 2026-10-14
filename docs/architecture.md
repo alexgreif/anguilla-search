@@ -16,14 +16,14 @@ flowchart TB
     subgraph Pages["Collection of pages"]
         P["<b>Page</b><br/>Holds relevant information about a single page"]
     end
-    subgraph Engine["Search engine"]
-        direction TB
-        E["<b>SearchEngine</b><br/>Combines index scores with PageRank<br/>Formats the results table"]
-        I["<b>Index</b><br/>Finds pages matching the query<br/>Assesses their fit"]
-        PR["<b>PageRank</b><br/>Computes link-based importance"]
+    subgraph Engine["SearchEngine object"]
+        E["Combines text similarity with PageRank<br/>Formats the results table"]
+        I["<b>Index</b><br/>Finds pages matching the query<br/>Computes text similarity"]
+        Ranks["Stored PageRank values<br/>Map from URL to rank"]
         I --> E
-        PR --> E
+        Ranks --> E
     end
+    PR["<b>PageRank</b><br/>Static compute method"]
     subgraph Results["Sorted set of search results"]
         R["<b>SearchResultEntry</b><br/>Page URL and search scores<br/>Sorted by total score, then URL"]
     end
@@ -31,12 +31,14 @@ flowchart TB
     A -->|initializes| C
     Seeds -->|feeds| C
     C -->|creates| Pages
-    Pages -->|feeds| Engine
-    A -->|starts and queries| Engine
-    Engine -->|creates| Results
+    P -->|indexed by| I
+    P -->|link graph| PR
+    PR -->|computes| Ranks
+    A -->|creates and queries| Engine
+    E -->|returns| Results
 ```
 
-*Figure 1. Main components of my Anguilla Search implementation. Bold text represents classes.*
+*Figure 1. Main components of my Anguilla Search implementation. The SearchEngine object contains the index and stored rank values; PageRank supplies the rank calculation.*
 
 ## Components
 
