@@ -14,6 +14,7 @@ import java.util.Map.Entry;
  */
 class ReverseIndex {
     private Map<String, Map<String, Double>> tokenToUrlToTfIdf;
+    private final int nPages;
 
     /**
      * Create Reverse Index from Forward Index.
@@ -22,7 +23,7 @@ class ReverseIndex {
      */
     ReverseIndex(ForwardIndex forwardIndex) {
         tokenToUrlToTfIdf = new HashMap<>();
-        int nPages = forwardIndex.nPages();
+        nPages = forwardIndex.nPages();
 
         // Build initial map with count instead of TfIdf
         for (Entry<String, Map<String, Integer>> urlForwardIndexEntry : forwardIndex.urlToTokenToCountEntrySet()) {
@@ -65,6 +66,17 @@ class ReverseIndex {
      */
     Map<String, Double> getTfIdfsFor(String token) {
         return tokenToUrlToTfIdf.getOrDefault(token, new HashMap<>());
+    }
+
+    /**
+     * Returns the corpus IDF for a token, or zero for a token outside the index.
+     *
+     * @param token token whose inverse document frequency is requested
+     * @return inverse document frequency
+     */
+    double getIdfFor(String token) {
+        Map<String, Double> documents = tokenToUrlToTfIdf.get(token);
+        return documents == null ? 0.0 : Math.log((double) nPages / documents.size());
     }
 
     /**

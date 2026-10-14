@@ -34,7 +34,6 @@ class SearchTests {
         crawler.crawl();
         Index index = new Index(crawler.getPages());
 
-        // Place your code here to execute the search
         List<Entry<String, Double>> results = index.searchQuery(String.join(", ", query));
         List<String> foundUrls = new LinkedList<>();
         for (Entry<String, Double> entry : results) {
@@ -46,10 +45,8 @@ class SearchTests {
         System.out.println("Found\n" + foundUrls);
 
         // Verify that the found URLs are correct, i.e. the same as stated in the JSON file
-        // Uncomment the following line once you have implemented the search
         assertTrue(foundUrls.containsAll(Arrays.asList(expectedURLs)));
 
 
-        // Remove the following line after adding your code!
     }
 }

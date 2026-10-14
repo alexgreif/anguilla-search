@@ -52,7 +52,7 @@ public final class AnguillaSearch {
             LOGGER.error(e.getMessage());
         }
 
-        // Aufgabe 3.5 Vergleich
+        // Compare TF-IDF-only and cosine-only rankings (A3, step 5)
         String[] seedUrlsNet3 = {"http://mozzarella-and-edam.cheesy3", "http://asiago-and-brie.cheesy3", "http://quark-and-slovakianbryndza.cheesy3"};
         String[] queryTokens = {"burrata", "slovakianbryndza", "cantal"};
         crawler = new Crawler(seedUrlsNet3);
